@@ -15,18 +15,18 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   const [reporting, setReporting] = useState(false);
   const [similarItems, setSimilarItems] = useState([]);
   const [activeImg, setActiveImg] = useState(0);
-  const [localItem, setLocalItem] = useState(item);
   const [claimAnswer, setClaimAnswer] = useState('');
   const [verifyingClaim, setVerifyingClaim] = useState(false);
+  const [sessionUnlocked, setSessionUnlocked] = useState(false);
 
   useEffect(() => {
-    setLocalItem(item);
     setClaimAnswer('');
+    setSessionUnlocked(false);
   }, [item]);
 
   // Gather all images (gallery + legacy single image)
-  const allImages = localItem?.images?.length > 0 ? localItem.images : (localItem?.imageUrl ? [localItem.imageUrl] : []);
-  const itemId = localItem?.id || localItem?._id;
+  const allImages = item?.images?.length > 0 ? item.images : (item?.imageUrl ? [item.imageUrl] : []);
+  const itemId = item?.id || item?._id;
   const itemUrl = `${window.location.origin}/lost?item=${itemId}`;
 
   useEffect(() => {
@@ -67,8 +67,8 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
     if (!claimAnswer) return;
     setVerifyingClaim(true);
     try {
-      const { item: updatedItem } = await itemsApi.verifyClaim(itemId, claimAnswer);
-      setLocalItem(updatedItem);
+      await itemsApi.verifyClaim(itemId, claimAnswer);
+      setSessionUnlocked(true);
       toast.success('Access Granted! You can now view contact info and message the poster.');
     } catch (err) {
       toast.error(err.message || 'Incorrect answer.');
@@ -78,14 +78,14 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   };
 
   let whatsAppDM = null;
-  if (localItem?.contact) {
-    const digitsOnly = localItem.contact.replace(/\D/g, '');
+  if (item?.contact) {
+    const digitsOnly = item.contact.replace(/\D/g, '');
     let finalWaNum = digitsOnly;
     if (digitsOnly.length === 10) finalWaNum = '91' + digitsOnly;
     if (finalWaNum.length >= 10 && finalWaNum.length <= 15) {
       whatsAppDM = {
         number: finalWaNum,
-        text: `Hi! I'm contacting you regarding your listing "${localItem.title}" on BBD Lost & Found.`
+        text: `Hi! I'm contacting you regarding your listing "${item.title}" on BBD Lost & Found.`
       };
     }
   }
@@ -97,7 +97,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(itemUrl)}&bgcolor=0f172a&color=818cf8&margin=10`;
 
-  const isLocked = localItem?.securityQuestion && user && user.id !== localItem?.authorId && (!localItem?.unlockedUsers || !localItem.unlockedUsers.includes(user.id));
+  const isLocked = item?.securityQuestion && user && user.id !== item?.authorId && (!item?.unlockedUsers || !item.unlockedUsers.includes(user.id)) && !sessionUnlocked;
 
   return (
     <>
@@ -108,11 +108,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
           {/* Type Badge */}
           <span style={{
-            fontSize: '0.8rem', padding: '0.3rem 0.6rem', borderRadius: '4px', display: 'inline-block',
             background: item.type === 'lost' ? 'var(--primary-color)' : 'var(--secondary-color)',
-            marginBottom: '0.75rem',
+            color: 'white', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block', marginBottom: '1rem'
           }}>
-            {item.type === 'lost' ? '🔴 LOST' : '🟢 FOUND'}
+            {item.type.toUpperCase() === 'LOST' ? 'LOST ITEM' : 'FOUND ITEM'}
           </span>
 
           {/* Image Gallery */}
@@ -164,10 +163,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           )}
 
           {/* Contact */}
-          {!isLocked && localItem.contact && (
+          {!isLocked && item.contact && (
             <div style={{ marginBottom: '1.25rem' }}>
               <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Contact Info</h4>
-              <p>{localItem.contact}</p>
+              <p>{item.contact}</p>
             </div>
           )}
 
@@ -200,7 +199,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
                 The poster requires you to answer a secret question to prove this item belongs to you before contacting them.
               </p>
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '6px', marginBottom: '1rem', fontStyle: 'italic' }}>
-                " {localItem.securityQuestion} "
+                " {item.securityQuestion} "
               </div>
               <form onSubmit={handleClaimVerify} style={{ display: 'flex', gap: '0.5rem' }}>
                 <input 
@@ -218,7 +217,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
               </form>
             </div>
           ) : (
-            user && user.id !== localItem.authorId && (
+            user && user.id !== item.authorId && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setShowMessageModal(true)}>
                   💬 Send Internal Message
