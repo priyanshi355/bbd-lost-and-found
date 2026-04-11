@@ -7,6 +7,7 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
@@ -42,21 +43,26 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <Link to="/" className="nav-brand">BBD Lost & Found</Link>
-      <div className="nav-links">
-        <Link to="/" className={`nav-link ${isActive('/')}`}>Home</Link>
-        <Link to="/lost" className={`nav-link ${isActive('/lost')}`}>Lost Items</Link>
-        <Link to="/found" className={`nav-link ${isActive('/found')}`}>Found Items</Link>
+      
+      <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        {mobileMenuOpen ? '✕' : '☰'}
+      </button>
+
+      <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+        <Link to="/" className={`nav-link ${isActive('/')}`} onClick={() => setMobileMenuOpen(false)}>Home</Link>
+        <Link to="/lost" className={`nav-link ${isActive('/lost')}`} onClick={() => setMobileMenuOpen(false)}>Lost Items</Link>
+        <Link to="/found" className={`nav-link ${isActive('/found')}`} onClick={() => setMobileMenuOpen(false)}>Found Items</Link>
 
         {user?.role === 'admin' && (
-          <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>Admin Panel</Link>
+          <Link to="/admin" className={`nav-link ${isActive('/admin')}`} onClick={() => setMobileMenuOpen(false)}>Admin Panel</Link>
         )}
 
-        <Link to="/post" className="btn btn-primary">Post Item</Link>
+        <Link to="/post" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>Post Item</Link>
 
         {user ? (
-          <>
+          <div className="nav-user-actions">
             {/* Inbox bell with unread badge */}
-            <Link to="/inbox" className="nav-inbox-btn" title="Inbox">
+            <Link to="/inbox" className="nav-inbox-btn" title="Inbox" onClick={() => setMobileMenuOpen(false)}>
               💬
               {unreadCount > 0 && (
                 <span className="nav-unread-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
@@ -89,15 +95,15 @@ const Navbar = () => {
                     💬 Inbox {unreadCount > 0 && <span className="nav-unread-badge" style={{ position: 'static', marginLeft: 'auto' }}>{unreadCount}</span>}
                   </Link>
                   <div className="nav-dropdown-divider"></div>
-                  <button className="nav-dropdown-item nav-dropdown-logout" onClick={() => { logout(); setDropdownOpen(false); }}>
+                  <button className="nav-dropdown-item nav-dropdown-logout" onClick={() => { logout(); setDropdownOpen(false); setMobileMenuOpen(false); }}>
                     🚪 Logout
                   </button>
                 </div>
               )}
             </div>
-          </>
+          </div>
         ) : (
-          <Link to="/login" className={`nav-link ${isActive('/login')}`}>Login / Register</Link>
+          <Link to="/login" className={`nav-link ${isActive('/login')}`} onClick={() => setMobileMenuOpen(false)}>Login / Register</Link>
         )}
       </div>
     </nav>

@@ -16,11 +16,9 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   const [similarItems, setSimilarItems] = useState([]);
   const [activeImg, setActiveImg] = useState(0);
 
-  if (!item) return null;
-
   // Gather all images (gallery + legacy single image)
-  const allImages = item.images?.length > 0 ? item.images : (item.imageUrl ? [item.imageUrl] : []);
-  const itemId = item.id || item._id;
+  const allImages = item?.images?.length > 0 ? item.images : (item?.imageUrl ? [item.imageUrl] : []);
+  const itemId = item?.id || item?._id;
   const itemUrl = `${window.location.origin}/lost?item=${itemId}`;
 
   useEffect(() => {
@@ -30,6 +28,8 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
       itemsApi.getSimilar(itemId).then(setSimilarItems).catch(() => {});
     }
   }, [itemId]);
+
+  if (!item) return null;
 
   const handleReport = async (e) => {
     e.preventDefault();
