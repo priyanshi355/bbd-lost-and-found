@@ -12,10 +12,13 @@ const PostItem = () => {
   const [type, setType] = useState('lost');
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
     description: '',
+    category: '',
+    type: 'lost',
     location: '',
-    contact: ''
+    contact: '',
+    securityQuestion: '',
+    securityAnswer: ''
   });
   const [images, setImages] = useState([]); // array of base64 strings (up to 5)
   const [mapCoords, setMapCoords] = useState(null);
@@ -61,6 +64,8 @@ const PostItem = () => {
         description: formData.description,
         location: formData.location,
         contact: formData.contact,
+        securityQuestion: formData.securityQuestion,
+        securityAnswer: formData.securityAnswer,
         imageUrl: images[0] || null,
         images: images,
         lat: mapCoords?.lat || null,
@@ -68,7 +73,7 @@ const PostItem = () => {
       });
 
       toast.success(`Successfully reported ${type} item!`);
-      setFormData({ title: '', category: '', description: '', location: '', contact: '' });
+      setFormData({ title: '', category: '', description: '', location: '', contact: '', securityQuestion: '', securityAnswer: '' });
       setImages([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setIsSubmitting(false);
@@ -97,7 +102,7 @@ const PostItem = () => {
             type="button"
             className={`btn ${type === 'lost' ? 'btn-primary' : 'btn-secondary'}`} 
             style={{ flex: 1 }}
-            onClick={() => setType('lost')}
+            onClick={() => { setType('lost'); setFormData(prev => ({...prev, type: 'lost'})) }}
           >
             I Lost Something
           </button>
@@ -105,7 +110,7 @@ const PostItem = () => {
             type="button"
             className={`btn ${type === 'found' ? 'btn-primary' : 'btn-secondary'}`} 
             style={{ flex: 1 }}
-            onClick={() => setType('found')}
+            onClick={() => { setType('found'); setFormData(prev => ({...prev, type: 'found'})) }}
           >
             I Found Something
           </button>
@@ -187,9 +192,20 @@ const PostItem = () => {
           </div>
           
           <div className="form-group">
-            <label className="form-label">Contact Information (Optional)</label>
-            <input type="text" name="contact" value={formData.contact} onChange={handleChange} className="form-control" placeholder="E.g., +91 9876543210 or email" />
+            <label className="form-label">Contact Details (Optional)</label>
+            <input type="text" name="contact" value={formData.contact} onChange={handleChange} className="form-control" placeholder="Phone number or generic info..." />
           </div>
+
+          {formData.type === 'found' && (
+            <div className="form-group" style={{ background: 'rgba(244, 63, 94, 0.05)', padding: '1rem', borderLeft: '3px solid var(--accent-color)', borderRadius: '4px' }}>
+              <label className="form-label" style={{ color: 'var(--accent-color)' }}>🔒 Anti-Scam Claim Protection (Optional)</label>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Require claimants to correctly answer a secret question about the item (e.g. "What is the lock screen wallpaper?") before they can see your contact info.
+              </p>
+              <input type="text" name="securityQuestion" value={formData.securityQuestion} onChange={handleChange} className="form-control" placeholder="Security Question..." style={{ marginBottom: '0.5rem' }} />
+              <input type="text" name="securityAnswer" value={formData.securityAnswer} onChange={handleChange} className="form-control" placeholder="Exact Answer (Case-insensitive)" />
+            </div>
+          )}
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Report'}

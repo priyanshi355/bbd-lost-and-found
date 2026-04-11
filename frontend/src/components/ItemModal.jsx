@@ -15,10 +15,18 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   const [reporting, setReporting] = useState(false);
   const [similarItems, setSimilarItems] = useState([]);
   const [activeImg, setActiveImg] = useState(0);
+  const [localItem, setLocalItem] = useState(item);
+  const [claimAnswer, setClaimAnswer] = useState('');
+  const [verifyingClaim, setVerifyingClaim] = useState(false);
+
+  useEffect(() => {
+    setLocalItem(item);
+    setClaimAnswer('');
+  }, [item]);
 
   // Gather all images (gallery + legacy single image)
-  const allImages = item?.images?.length > 0 ? item.images : (item?.imageUrl ? [item.imageUrl] : []);
-  const itemId = item?.id || item?._id;
+  const allImages = localItem?.images?.length > 0 ? localItem.images : (localItem?.imageUrl ? [localItem.imageUrl] : []);
+  const itemId = localItem?.id || localItem?._id;
   const itemUrl = `${window.location.origin}/lost?item=${itemId}`;
 
   useEffect(() => {
@@ -54,15 +62,30 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
+  const handleClaimVerify = async (e) => {
+    e.preventDefault();
+    if (!claimAnswer) return;
+    setVerifyingClaim(true);
+    try {
+      const { item: updatedItem } = await itemsApi.verifyClaim(itemId, claimAnswer);
+      setLocalItem(updatedItem);
+      toast.success('Access Granted! You can now view contact info and message the poster.');
+    } catch (err) {
+      toast.error(err.message || 'Incorrect answer.');
+    } finally {
+      setVerifyingClaim(false);
+    }
+  };
+
   let whatsAppDM = null;
-  if (item?.contact) {
-    const digitsOnly = item.contact.replace(/\D/g, '');
+  if (localItem?.contact) {
+    const digitsOnly = localItem.contact.replace(/\D/g, '');
     let finalWaNum = digitsOnly;
     if (digitsOnly.length === 10) finalWaNum = '91' + digitsOnly;
     if (finalWaNum.length >= 10 && finalWaNum.length <= 15) {
       whatsAppDM = {
         number: finalWaNum,
-        text: `Hi! I'm contacting you regarding your listing "${item.title}" on BBD Lost & Found.`
+        text: `Hi! I'm contacting you regarding your listing "${localItem.title}" on BBD Lost & Found.`
       };
     }
   }
@@ -73,6 +96,8 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   };
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(itemUrl)}&bgcolor=0f172a&color=818cf8&margin=10`;
+
+  const isLocked = localItem?.securityQuestion && user && user.id !== localItem?.authorId && (!localItem?.unlockedUsers || !localItem.unlockedUsers.includes(user.id));
 
   return (
     <>
@@ -139,10 +164,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           )}
 
           {/* Contact */}
-          {item.contact && (
+          {!isLocked && localItem.contact && (
             <div style={{ marginBottom: '1.25rem' }}>
               <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Contact Info</h4>
-              <p>{item.contact}</p>
+              <p>{localItem.contact}</p>
             </div>
           )}
 
@@ -168,21 +193,47 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           </div>
 
           {/* Send Message / Report */}
-          {user && user.id !== item.authorId && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setShowMessageModal(true)}>
-                💬 Send Internal Message
-              </button>
-              {whatsAppDM && (
-                <button 
-                  className="btn btn-secondary" 
-                  style={{ width: '100%', background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }} 
-                  onClick={messagePosterOnWhatsApp}
-                >
-                  📲 Message on WhatsApp
+          {isLocked ? (
+            <div style={{ background: 'rgba(244, 63, 94, 0.05)', border: '1px solid rgba(244, 63, 94, 0.2)', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
+              <h4 style={{ color: 'var(--accent-color)', marginBottom: '0.5rem' }}>🔒 Locked: Claim this Item</h4>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                The poster requires you to answer a secret question to prove this item belongs to you before contacting them.
+              </p>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '6px', marginBottom: '1rem', fontStyle: 'italic' }}>
+                " {localItem.securityQuestion} "
+              </div>
+              <form onSubmit={handleClaimVerify} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  style={{ flex: 1, margin: 0 }} 
+                  placeholder="Your Answer..." 
+                  value={claimAnswer} 
+                  onChange={e => setClaimAnswer(e.target.value)} 
+                  required 
+                />
+                <button type="submit" className="btn btn-primary" disabled={verifyingClaim}>
+                  {verifyingClaim ? 'Verifying...' : 'Unlock'}
                 </button>
-              )}
+              </form>
             </div>
+          ) : (
+            user && user.id !== localItem.authorId && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setShowMessageModal(true)}>
+                  💬 Send Internal Message
+                </button>
+                {whatsAppDM && (
+                  <button 
+                    className="btn btn-secondary" 
+                    style={{ width: '100%', background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }} 
+                    onClick={messagePosterOnWhatsApp}
+                  >
+                    📲 Message on WhatsApp
+                  </button>
+                )}
+              </div>
+            )
           )}
           {!user && (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>

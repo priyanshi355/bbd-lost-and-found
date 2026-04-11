@@ -18,6 +18,10 @@ const itemSchema = new Schema({
   reportCount: { type: Number, default: 0 },
   isReported: { type: Boolean, default: false },
   isBanned: { type: Boolean, default: false },
+  // Anti-scam protection
+  securityQuestion: { type: String, default: null },
+  securityAnswer: { type: String, default: null, select: false },
+  unlockedUsers: { type: [String], default: [] }
 }, {
   timestamps: true // Creates 'createdAt', 'updatedAt' passively
 });

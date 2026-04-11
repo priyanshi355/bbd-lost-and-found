@@ -71,6 +71,19 @@ export const itemStore = {
     return await res.json();
   },
 
+  async verifyClaim(id, answer) {
+    const res = await fetch(`${API_URL}/${id}/verify-claim`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ answer })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Verification failed');
+    }
+    return await res.json();
+  },
+
   async resolveItem(id) {
     const res = await fetch(`${API_URL}/${id}/resolve`, {
       method: 'PUT',
