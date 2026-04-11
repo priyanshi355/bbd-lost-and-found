@@ -82,8 +82,8 @@ const Navbar = () => {
                   <Link to="/profile" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
                     👤 My Profile
                   </Link>
-                  <Link to="/dashboard" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                    📋 Dashboard
+                  <Link to="/my-items" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    📋 My Postings
                   </Link>
                   <Link to="/inbox" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
                     💬 Inbox {unreadCount > 0 && <span className="nav-unread-badge" style={{ position: 'static', marginLeft: 'auto' }}>{unreadCount}</span>}

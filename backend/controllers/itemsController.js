@@ -16,7 +16,11 @@ const getItems = async (req, res, next) => {
 // POST / — create item
 const createItem = async (req, res, next) => {
   try {
-    const newItem = new Item(req.body);
+    const newItem = new Item({
+      ...req.body,
+      // If auth middleware is attached to this, we can optionally enforce authorId:
+      // authorId: req.user?._id || req.body.authorId
+    });
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
   } catch (error) {
@@ -26,22 +30,52 @@ const createItem = async (req, res, next) => {
   }
 };
 
+// GET /my-items
+const getMyItems = async (req, res, next) => {
+  try {
+    const items = await Item.find({ authorId: req.user._id.toString() }).sort({ createdAt: -1 });
+    res.json(items);
+  } catch (error) { next(error); }
+};
+
 // PUT /:id — update item
 const updateItem = async (req, res, next) => {
   try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    if (item.authorId !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to edit this item' });
+    }
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.id, req.body, { new: true, runValidators: true }
     );
-    if (!updatedItem) return res.status(404).json({ error: 'Item not found' });
     res.json(updatedItem);
+  } catch (error) { next(error); }
+};
+
+// PUT /:id/resolve — mark item as resolved/unresolved
+const resolveItem = async (req, res, next) => {
+  try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    if (item.authorId !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    item.resolved = !item.resolved;
+    await item.save();
+    res.json(item);
   } catch (error) { next(error); }
 };
 
 // DELETE /:id — delete item
 const deleteItem = async (req, res, next) => {
   try {
-    const deletedItem = await Item.findByIdAndDelete(req.params.id);
-    if (!deletedItem) return res.status(404).json({ error: 'Item not found' });
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    if (item.authorId !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to delete this item' });
+    }
+    await Item.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (error) { next(error); }
 };
@@ -86,4 +120,4 @@ const reportItem = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { getItems, createItem, updateItem, deleteItem, getSimilarItems, reportItem };
+module.exports = { getItems, createItem, updateItem, deleteItem, getSimilarItems, reportItem, getMyItems, resolveItem };

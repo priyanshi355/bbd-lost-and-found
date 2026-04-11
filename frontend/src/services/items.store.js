@@ -1,5 +1,12 @@
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/items';
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('bbd_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
 export const itemStore = {
   async getAllItems() {
     try {
@@ -23,14 +30,14 @@ export const itemStore = {
     }
   },
 
-  async getItemsByUserId(userId) {
+  async getMyItems() {
     try {
-       const res = await fetch(`${API_URL}?authorId=${userId}`);
-       if (!res.ok) throw new Error('Failed isolating user items');
+       const res = await fetch(`${API_URL}/my-items`, { headers: getAuthHeaders() });
+       if (!res.ok) throw new Error('Failed to fetch your items');
        return await res.json();
     } catch(err) {
       console.error(err);
-      return [];
+      throw err;
     }
   },
 
@@ -38,7 +45,7 @@ export const itemStore = {
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data)
       });
       if (!res.ok) {
@@ -57,16 +64,26 @@ export const itemStore = {
   async updateItem(id, updatedData) {
     const res = await fetch(`${API_URL}/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updatedData)
     });
-    if (!res.ok) throw new Error('Failed partial modifications against Cloud');
+    if (!res.ok) throw new Error('Failed to update item');
+    return await res.json();
+  },
+
+  async resolveItem(id) {
+    const res = await fetch(`${API_URL}/${id}/resolve`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to mark item as resolved');
     return await res.json();
   },
 
   async deleteItem(id) {
     const res = await fetch(`${API_URL}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!res.ok) throw new Error('Failed to permanently delete object');
     return await res.json();
