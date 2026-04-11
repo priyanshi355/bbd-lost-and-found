@@ -11,7 +11,9 @@ const itemSchema = new Schema({
   contact: { type: String },
   authorId: { type: String, required: true }, // Ties inherently mapped relationships efficiently
   resolved: { type: Boolean, default: false },
-  imageUrl: { type: String, default: null } // Explicit preparation targeting future implementations securely
+  imageUrl: { type: String, default: null },
+  lat: { type: Number, default: null },
+  lng: { type: Number, default: null }
 }, {
   timestamps: true // Creates 'createdAt', 'updatedAt' passively
 });

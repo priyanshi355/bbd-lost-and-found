@@ -116,6 +116,11 @@ const FoundItems = () => {
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
                 {new Date(item.createdAt).toLocaleDateString()} • {item.category}
               </p>
+              {item.imageUrl && (
+                <div style={{ marginBottom: '1rem', height: '120px', overflow: 'hidden', borderRadius: '6px' }}>
+                  <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
               <p style={{ flex: 1, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {item.description}
               </p>

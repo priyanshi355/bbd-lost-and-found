@@ -1,81 +1,88 @@
-const USERS_KEY = 'bbd_lost_found_users';
-const SESSION_KEY = 'bbd_lost_found_session';
+const API_URL = 'http://localhost:5000/api/auth';
 
-const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
-
-export const authStore = {
-  initMockData() {
-    let users = JSON.parse(localStorage.getItem(USERS_KEY) || 'null');
-    if (!users) {
-      users = [{
-        id: 'admin_1',
-        name: 'System Admin',
-        email: 'admin@bbd.ac.in',
-        password: 'admin',
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      }];
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
+export const authApi = {
+  async register(name, email, password) {
+    const res = await fetch(`${API_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+    return data;
   },
 
-  getAllUsers() {
-    this.initMockData();
-    return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+  async verifyEmail(email, otp) {
+    const res = await fetch(`${API_URL}/verify-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed');
+    return data; // { token, user }
   },
 
-  register(name, email, password) {
-    const users = this.getAllUsers();
-    
-    if (users.find(u => u.email === email)) {
-      return { success: false, message: 'Email already exists in system' };
-    }
-
-    const newUser = {
-      id: generateId(),
-      name,
-      email,
-      password, // plaintext for mock simulation only
-      role: 'student',
-      createdAt: new Date().toISOString()
-    };
-
-    users.push(newUser);
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-
-    // Auto-login
-    this.setSession(newUser);
-    return { success: true, user: newUser };
+  async resendOtp(email) {
+    const res = await fetch(`${API_URL}/resend-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to resend OTP');
+    return data;
   },
 
-  login(email, password) {
-    const users = this.getAllUsers();
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (!user) {
-      return { success: false, message: 'Invalid credentials detected' };
-    }
-
-    this.setSession(user);
-    return { success: true, user };
+  async login(email, password) {
+    const res = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    return data; // { token, user }
   },
 
-  setSession(user) {
-    // Strip password from session object intentionally
-    const sessionUser = { id: user.id, name: user.name, email: user.email, role: user.role };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+  async forgotPassword(email) {
+    const res = await fetch(`${API_URL}/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to send reset OTP');
+    return data;
   },
 
-  logout() {
-    localStorage.removeItem(SESSION_KEY);
+  async resetPassword(email, otp, newPassword) {
+    const res = await fetch(`${API_URL}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Password reset failed');
+    return data;
+  },
+
+  getToken() {
+    return localStorage.getItem('bbd_token');
+  },
+
+  saveSession(token, user) {
+    localStorage.setItem('bbd_token', token);
+    localStorage.setItem('bbd_user', JSON.stringify(user));
+  },
+
+  clearSession() {
+    localStorage.removeItem('bbd_token');
+    localStorage.removeItem('bbd_user');
   },
 
   getCurrentUser() {
-    this.initMockData();
-    try {
-      return JSON.parse(localStorage.getItem(SESSION_KEY));
-    } catch {
-      return null;
-    }
-  }
+    const u = localStorage.getItem('bbd_user');
+    return u ? JSON.parse(u) : null;
+  },
 };

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authStore } from '../services/auth.store';
+import { authApi } from '../services/auth.store';
+import { userApi } from '../services/user.api';
 import { toast } from '../services/toast';
 
 const AuthContext = createContext();
@@ -9,46 +10,51 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authStore.initMockData();
-    const activeSession = authStore.getCurrentUser();
-    if (activeSession) {
-      setUser(activeSession);
-    }
+    const savedUser = authApi.getCurrentUser();
+    const token = authApi.getToken();
+    if (savedUser && token) setUser(savedUser);
     setLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    const res = authStore.login(email, password);
-    if (res.success) {
-      setUser(res.user);
-      toast.success('Successfully logged in!');
-      return true;
-    }
-    toast.error(res.message);
-    return false;
+  const login = async (email, password) => {
+    const data = await authApi.login(email, password); // throws on error
+    authApi.saveSession(data.token, data.user);
+    setUser(data.user);
+    toast.success('Welcome back, ' + data.user.name + '!');
+    return data;
   };
 
-  const register = (name, email, password) => {
-    const res = authStore.register(name, email, password);
-    if (res.success) {
-      setUser(res.user);
-      toast.success('Account created successfully!');
-      return true;
-    }
-    toast.error(res.message);
-    return false;
+  const register = async (name, email, password) => {
+    return await authApi.register(name, email, password); // returns { message, email }
+  };
+
+  const verifyOtp = async (email, otp) => {
+    const data = await authApi.verifyEmail(email, otp);
+    authApi.saveSession(data.token, data.user);
+    setUser(data.user);
+    toast.success('Email verified! Welcome to BBD Lost & Found 🎉');
+    return data;
   };
 
   const logout = () => {
-    authStore.logout();
+    authApi.clearSession();
     setUser(null);
-    toast.success('Successfully logged out.');
+    toast.success('Logged out successfully.');
+  };
+
+  const updateUser = async (profileData) => {
+    const updated = await userApi.updateMe(profileData);
+    const stored = authApi.getCurrentUser();
+    const merged = { ...stored, ...updated };
+    localStorage.setItem('bbd_user', JSON.stringify(merged));
+    setUser(merged);
+    return updated;
   };
 
   if (loading) return null;
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, verifyOtp, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
