@@ -17,8 +17,8 @@ const PostItem = () => {
     location: '',
     contact: ''
   });
-  const [imageBase64, setImageBase64] = useState('');
-  const [mapCoords, setMapCoords] = useState(null); // { lat, lng }
+  const [images, setImages] = useState([]); // array of base64 strings (up to 5)
+  const [mapCoords, setMapCoords] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
@@ -26,30 +26,22 @@ const PostItem = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      setImageBase64('');
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      // Basic image size validation (optional)
-      if (event.target.result.length > 5 * 1024 * 1024) { // over ~3.5MB base64
-        toast.error('Image is too large. Please select a smaller file (under 3MB).');
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        setImageBase64('');
-        return;
-      }
-      setImageBase64(event.target.result);
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files).slice(0, 5);
+    if (!files.length) return;
+    const readers = files.map(file => new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) return reject(new Error('Not an image'));
+      if (file.size > 3 * 1024 * 1024) return reject(new Error(`${file.name} is too large (max 3MB)`));
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    }));
+    Promise.all(readers)
+      .then(results => setImages(prev => [...prev, ...results].slice(0, 5)))
+      .catch(err => toast.error(err.message));
   };
+
+  const removeImage = (idx) => setImages(prev => prev.filter((_, i) => i !== idx));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,15 +61,15 @@ const PostItem = () => {
         description: formData.description,
         location: formData.location,
         contact: formData.contact,
-        imageUrl: imageBase64 || null,
+        imageUrl: images[0] || null,
+        images: images,
         lat: mapCoords?.lat || null,
         lng: mapCoords?.lng || null,
       });
 
       toast.success(`Successfully reported ${type} item!`);
-      
       setFormData({ title: '', category: '', description: '', location: '', contact: '' });
-      setImageBase64('');
+      setImages([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setIsSubmitting(false);
       
@@ -163,22 +155,33 @@ const PostItem = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Image (Optional)</label>
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={handleImageChange} 
-              className="form-control" 
+            <label className="form-label">Images (Optional — up to 5)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              className="form-control"
               ref={fileInputRef}
               style={{ display: 'block', padding: '0.6rem' }}
             />
-            {imageBase64 && (
-              <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-                <img 
-                  src={imageBase64} 
-                  alt="Preview" 
-                  style={{ maxHeight: '200px', borderRadius: '8px', border: '1px solid var(--glass-border)' }} 
-                />
+            {images.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                {images.map((img, i) => (
+                  <div key={i} style={{ position: 'relative' }}>
+                    <img src={img} alt="" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                    <button type="button" onClick={() => removeImage(i)}
+                      style={{ position: 'absolute', top: '-6px', right: '-6px', background: 'var(--accent-color)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', color: 'white', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {images.length < 5 && (
+                  <div style={{ width: '80px', height: '80px', border: '2px dashed var(--glass-border)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '1.5rem', cursor: 'pointer' }}
+                    onClick={() => fileInputRef.current?.click()}>
+                    +
+                  </div>
+                )}
               </div>
             )}
           </div>

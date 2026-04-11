@@ -12,8 +12,12 @@ const itemSchema = new Schema({
   authorId: { type: String, required: true }, // Ties inherently mapped relationships efficiently
   resolved: { type: Boolean, default: false },
   imageUrl: { type: String, default: null },
+  images: { type: [String], default: [] }, // multiple images gallery
   lat: { type: Number, default: null },
-  lng: { type: Number, default: null }
+  lng: { type: Number, default: null },
+  reportCount: { type: Number, default: 0 },
+  isReported: { type: Boolean, default: false },
+  isBanned: { type: Boolean, default: false },
 }, {
   timestamps: true // Creates 'createdAt', 'updatedAt' passively
 });
