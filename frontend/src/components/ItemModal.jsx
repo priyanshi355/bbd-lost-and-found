@@ -54,6 +54,24 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
+  let whatsAppDM = null;
+  if (item?.contact) {
+    const digitsOnly = item.contact.replace(/\D/g, '');
+    let finalWaNum = digitsOnly;
+    if (digitsOnly.length === 10) finalWaNum = '91' + digitsOnly;
+    if (finalWaNum.length >= 10 && finalWaNum.length <= 15) {
+      whatsAppDM = {
+        number: finalWaNum,
+        text: `Hi! I'm contacting you regarding your listing "${item.title}" on BBD Lost & Found.`
+      };
+    }
+  }
+
+  const messagePosterOnWhatsApp = () => {
+    if (!whatsAppDM) return;
+    window.open(`https://wa.me/${whatsAppDM.number}?text=${encodeURIComponent(whatsAppDM.text)}`, '_blank');
+  };
+
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(itemUrl)}&bgcolor=0f172a&color=818cf8&margin=10`;
 
   return (
@@ -151,9 +169,20 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
           {/* Send Message / Report */}
           {user && user.id !== item.authorId && (
-            <button className="btn btn-primary" style={{ width: '100%', marginBottom: '0.5rem' }} onClick={() => setShowMessageModal(true)}>
-              💬 Send Message to Poster
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setShowMessageModal(true)}>
+                💬 Send Internal Message
+              </button>
+              {whatsAppDM && (
+                <button 
+                  className="btn btn-secondary" 
+                  style={{ width: '100%', background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }} 
+                  onClick={messagePosterOnWhatsApp}
+                >
+                  📲 Message on WhatsApp
+                </button>
+              )}
+            </div>
           )}
           {!user && (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
