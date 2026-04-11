@@ -35,16 +35,23 @@ export const itemStore = {
   },
 
   async addItem(data) {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) {
-       const errData = await res.json();
-       throw new Error(errData.error || 'Failed constructing dataset');
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Server rejected the item submission');
+      }
+      return await res.json();
+    } catch (err) {
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        throw new Error('Cannot reach the backend server. Make sure "node server.js" is running in the backend folder.');
+      }
+      throw err;
     }
-    return await res.json();
   },
 
   async updateItem(id, updatedData) {
