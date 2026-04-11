@@ -1,6 +1,8 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Item = require('../models/Item');
+const User = require('../models/User');
+const { sendGenericEmail } = require('../utils/emailService');
 
 // POST /api/messages/start — start a conversation (or get existing) and send first message
 const startConversation = async (req, res) => {
@@ -50,6 +52,22 @@ const startConversation = async (req, res) => {
     conversation.lastMessageAt = new Date();
     conversation.unreadCount.set(receiverId, currentUnread + 1);
     await conversation.save();
+
+    // Async email notification
+    User.findById(receiverId).then(receiver => {
+      if (receiver && receiver.email) {
+        sendGenericEmail(
+          receiver.email,
+          `New Message about "${item.title}"`,
+          `<h3 style="margin-bottom: 1rem;">You received a new message!</h3>
+           <p style="color: #cbd5e1;"><strong>${req.user.name}</strong> sent you a message regarding your item <strong>${item.title}</strong>.</p>
+           <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0;">
+             <p style="color: #f8fafc; margin: 0; font-style: italic;">"${text.trim()}"</p>
+           </div>
+           <p style="color: #cbd5e1;"><a href="https://bbd-lost-and-found.vercel.app/inbox" style="color: #818cf8;">Click here to reply</a></p>`
+        ).catch(err => console.error('Failed to send message email:', err));
+      }
+    });
 
     res.status(201).json({ conversation: conversation.toJSON(), message: message.toJSON() });
   } catch (err) {
@@ -139,6 +157,22 @@ const sendReply = async (req, res) => {
     conversation.unreadCount.set(receiverId, currentUnread + 1);
     conversation.unreadCount.set(senderId, 0);
     await conversation.save();
+
+    // Async email notification
+    User.findById(receiverId).then(receiver => {
+      if (receiver && receiver.email) {
+        sendGenericEmail(
+          receiver.email,
+          `New Reply about "${conversation.itemTitle}"`,
+          `<h3 style="margin-bottom: 1rem;">You received a new reply!</h3>
+           <p style="color: #cbd5e1;"><strong>${req.user.name}</strong> replied to the conversation regarding <strong>${conversation.itemTitle}</strong>.</p>
+           <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0;">
+             <p style="color: #f8fafc; margin: 0; font-style: italic;">"${text.trim()}"</p>
+           </div>
+           <p style="color: #cbd5e1;"><a href="https://bbd-lost-and-found.vercel.app/inbox" style="color: #818cf8;">Click here to reply</a></p>`
+        ).catch(err => console.error('Failed to send reply email:', err));
+      }
+    });
 
     res.status(201).json(message.toJSON());
   } catch (err) {

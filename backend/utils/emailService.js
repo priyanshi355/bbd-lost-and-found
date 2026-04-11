@@ -34,4 +34,21 @@ const sendOtpEmail = async (toEmail, otp, subject, purpose) => {
   });
 };
 
-module.exports = { generateOtp, sendOtpEmail };
+const sendGenericEmail = async (toEmail, subject, htmlContent) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 2rem; border-radius: 12px;">
+      <h2 style="color: #818cf8; margin-bottom: 0.5rem;">BBD Lost & Found</h2>
+      ${htmlContent}
+      <hr style="border-color: rgba(255,255,255,0.1); margin: 1.5rem 0;" />
+      <p style="color: #475569; font-size: 0.8rem;">© 2026 BBD Lost & Found Platform</p>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: `"BBD Lost & Found" <${process.env.GMAIL_USER}>`,
+    to: toEmail,
+    subject,
+    html,
+  });
+};
+
+module.exports = { generateOtp, sendOtpEmail, sendGenericEmail };

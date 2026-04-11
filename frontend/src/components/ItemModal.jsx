@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CampusMap from './CampusMap';
 import SendMessageModal from './SendMessageModal';
+import ErrorBoundary from './ErrorBoundary';
 import { useAuth } from './AuthContext';
 import { itemsApi } from '../services/admin.api';
 import { toast } from '../services/toast';
@@ -59,7 +60,8 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
     <>
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '580px' }}>
-          <button className="modal-close" onClick={onClose}>&times;</button>
+          <ErrorBoundary>
+            <button className="modal-close" onClick={onClose}>&times;</button>
 
           {/* Type Badge */}
           <span style={{
@@ -190,6 +192,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
               </div>
             </div>
           )}
+          </ErrorBoundary>
         </div>
       </div>
 
