@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { itemStore } from '../services/items.store';
-import { authStore } from '../services/auth.store';
 import { toast } from '../services/toast';
 
 const AdminPanel = () => {
@@ -14,11 +13,9 @@ const AdminPanel = () => {
   }, []);
 
   const loadData = async () => {
-    const allUsers = authStore.getAllUsers();
     const allItems = await itemStore.getAllItems();
-    
     setStats({
-      users: allUsers.length,
+      users: '—',
       totalItems: allItems.length,
       activeItems: allItems.filter(i => !i.resolved).length,
       resolvedItems: allItems.filter(i => i.resolved).length,
