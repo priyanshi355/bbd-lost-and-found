@@ -1,73 +1,67 @@
-const STORE_KEY = 'bbd_lost_found_items';
+const API_URL = 'http://localhost:5000/api/items';
 
-/**
- * Generates a unique ID
- */
-const generateId = () => {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2);
-};
-
-/**
- * Initializes the store if it doesn't exist
- */
-const initStore = () => {
-  if (!localStorage.getItem(STORE_KEY)) {
-    localStorage.setItem(STORE_KEY, JSON.stringify([]));
-  }
-};
-
-/**
- * Item Store Service (Vanilla JS)
- */
 export const itemStore = {
-  getAllItems() {
-    initStore();
-    return JSON.parse(localStorage.getItem(STORE_KEY)) || [];
-  },
-
-  getItemsByType(type) {
-    const items = this.getAllItems();
-    return items.filter(item => item.type === type);
-  },
-
-  getItemsByUserId(userId) {
-    const items = this.getAllItems();
-    return items.filter(item => item.authorId === userId);
-  },
-
-  addItem(data) {
-    const items = this.getAllItems();
-    const newItem = {
-      ...data,
-      id: generateId(),
-      createdAt: new Date().toISOString()
-    };
-    items.push(newItem);
-    localStorage.setItem(STORE_KEY, JSON.stringify(items));
-    return newItem;
-  },
-
-  updateItem(id, updatedData) {
-    const items = this.getAllItems();
-    const itemIndex = items.findIndex(item => item.id === id);
-    
-    if (itemIndex > -1) {
-      items[itemIndex] = { ...items[itemIndex], ...updatedData };
-      localStorage.setItem(STORE_KEY, JSON.stringify(items));
-      return items[itemIndex];
+  async getAllItems() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error('Failed to fetch items globally');
+      return await res.json();
+    } catch(err) {
+      console.error(err);
+      return [];
     }
-    return null;
   },
 
-  deleteItem(id) {
-    let items = this.getAllItems();
-    const originalLength = items.length;
-    items = items.filter(item => item.id !== id);
-    
-    if (items.length !== originalLength) {
-      localStorage.setItem(STORE_KEY, JSON.stringify(items));
-      return true;
+  async getItemsByType(type) {
+    try {
+      const res = await fetch(`${API_URL}?type=${type}`);
+      if (!res.ok) throw new Error('Failed to fetch specific types');
+      return await res.json();
+    } catch(err) {
+      console.error(err);
+      return [];
     }
-    return false;
+  },
+
+  async getItemsByUserId(userId) {
+    try {
+       const res = await fetch(`${API_URL}?authorId=${userId}`);
+       if (!res.ok) throw new Error('Failed isolating user items');
+       return await res.json();
+    } catch(err) {
+      console.error(err);
+      return [];
+    }
+  },
+
+  async addItem(data) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+       const errData = await res.json();
+       throw new Error(errData.error || 'Failed constructing dataset');
+    }
+    return await res.json();
+  },
+
+  async updateItem(id, updatedData) {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedData)
+    });
+    if (!res.ok) throw new Error('Failed partial modifications against Cloud');
+    return await res.json();
+  },
+
+  async deleteItem(id) {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to permanently delete object');
+    return await res.json();
   }
 };

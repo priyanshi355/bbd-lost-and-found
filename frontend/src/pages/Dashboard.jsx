@@ -11,31 +11,32 @@ const Dashboard = () => {
   const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
-    // Artificial load to demonstrate skeleton
-    setTimeout(() => {
-      loadItems();
-    }, 600);
-  }, []);
+    if (user) loadItems();
+  }, [user]);
 
-  const loadItems = () => {
-    if (user) {
-      setItems(itemStore.getItemsByUserId(user.id));
-    }
+  const loadItems = async () => {
+    setIsLoading(true);
+    const data = await itemStore.getItemsByUserId(user.id);
+    setItems(data);
     setIsLoading(false);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this listing?')) {
-      itemStore.deleteItem(id);
-      toast.success('Item deleted successfully!');
-      loadItems();
+      try {
+        await itemStore.deleteItem(id);
+        toast.success('Item deleted successfully!');
+        loadItems();
+      } catch (err) { toast.error("Failed to delete item") }
     }
   };
 
-  const handleResolve = (id) => {
-    itemStore.updateItem(id, { resolved: true });
-    toast.success('Item marked as resolved!');
-    loadItems();
+  const handleResolve = async (id) => {
+    try {
+      await itemStore.updateItem(id, { resolved: true });
+      toast.success('Item marked as resolved!');
+      loadItems();
+    } catch (err) { toast.error("Database resolution failed") }
   };
 
   const startEdit = (item) => {
@@ -47,15 +48,17 @@ const Dashboard = () => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editForm.title || !editForm.description) {
       toast.error("Title and description are required");
       return;
     }
-    itemStore.updateItem(editingId, editForm);
-    toast.success('Item updated successfully!');
-    setEditingId(null);
-    loadItems();
+    try {
+      await itemStore.updateItem(editingId, editForm);
+      toast.success('Item updated successfully!');
+      setEditingId(null);
+      loadItems();
+    } catch (err) { toast.error("Failed executing database update") }
   };
 
   const cancelEdit = () => {

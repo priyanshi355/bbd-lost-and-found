@@ -21,7 +21,7 @@ const PostItem = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title || !formData.category || !formData.description) {
       toast.error("Please fill in the required fields (Title, Category, Description).");
@@ -30,28 +30,33 @@ const PostItem = () => {
 
     setIsSubmitting(true);
 
-    // Call Vanilla JS store implementation for CRUD Create
-    itemStore.addItem({
-      authorId: user?.id,
-      type,
-      title: formData.title,
-      category: formData.category,
-      description: formData.description,
-      location: formData.location,
-      contact: formData.contact,
-    });
+    // Call Async Store mapping MongoDB Payload Create
+    try {
+      await itemStore.addItem({
+        authorId: user?.id,
+        type,
+        title: formData.title,
+        category: formData.category,
+        description: formData.description,
+        location: formData.location,
+        contact: formData.contact,
+      });
 
-    toast.success(`Successfully reported ${type} item!`);
-    
-    // Reset form state properly
-    setFormData({ title: '', category: '', description: '', location: '', contact: '' });
-    setIsSubmitting(false);
-    
-    // Auto redirect to updated list to fulfill render requirement
-    if (type === 'lost') {
-      navigate('/lost');
-    } else {
-      navigate('/found');
+      toast.success(`Successfully reported ${type} item!`);
+      
+      // Reset form state properly
+      setFormData({ title: '', category: '', description: '', location: '', contact: '' });
+      setIsSubmitting(false);
+      
+      // Auto redirect to updated list to fulfill render requirement
+      if (type === 'lost') {
+        navigate('/lost');
+      } else {
+        navigate('/found');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to successfully post database records.');
+      setIsSubmitting(false);
     }
   };
 

@@ -13,9 +13,9 @@ const AdminPanel = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
+  const loadData = async () => {
     const allUsers = authStore.getAllUsers();
-    const allItems = itemStore.getAllItems();
+    const allItems = await itemStore.getAllItems();
     
     setStats({
       users: allUsers.length,
@@ -26,9 +26,9 @@ const AdminPanel = () => {
     setItems(allItems);
   };
 
-  const handleDeleteItem = (id) => {
+  const handleDeleteItem = async (id) => {
      if(window.confirm('Admin Override: Are you sure you wish to permanently delete this item?')) {
-        itemStore.deleteItem(id);
+        await itemStore.deleteItem(id);
         toast.success("Item manually purged.");
         loadData();
      }

@@ -15,11 +15,13 @@ const FoundItems = () => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
-    // Artificial load to demonstrate skeleton
-    setTimeout(() => {
-      setItems(itemStore.getItemsByType('found'));
+    const fetchItems = async () => {
+      setIsLoading(true);
+      const data = await itemStore.getItemsByType('found');
+      setItems(data);
       setIsLoading(false);
-    }, 600);
+    };
+    fetchItems();
   }, []);
 
   const filteredItems = useMemo(() => {
