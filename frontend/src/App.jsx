@@ -9,6 +9,7 @@ import PostItem from './pages/PostItem';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import Profile from './pages/Profile';
+import Inbox from './pages/Inbox';
 import ToastContainer from './components/ToastContainer';
 import { AuthProvider } from './components/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -28,6 +29,7 @@ function App() {
             <Route path="/post" element={<ProtectedRoute><PostItem /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
           </Routes>
         </div>

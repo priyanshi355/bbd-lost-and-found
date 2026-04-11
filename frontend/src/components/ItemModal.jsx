@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CampusMap from './CampusMap';
+import SendMessageModal from './SendMessageModal';
+import { useAuth } from './AuthContext';
 
 const ItemModal = ({ item, onClose }) => {
+  const { user } = useAuth();
+  const [showMessageModal, setShowMessageModal] = useState(false);
   if (!item) return null;
 
   return (
@@ -75,8 +79,28 @@ const ItemModal = ({ item, onClose }) => {
             <CampusMap lat={item.lat} lng={item.lng} readOnly={true} height="220px" />
           </div>
         )}
+
+        {/* Send Message Button — shown only to logged-in users who are NOT the owner */}
+        {user && user.id !== item.authorId && (
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%', marginTop: '1rem' }}
+            onClick={() => setShowMessageModal(true)}
+          >
+            💬 Send Message to Poster
+          </button>
+        )}
+        {!user && (
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '1rem' }}>
+            <a href="/login" style={{ color: 'var(--primary-color)' }}>Login</a> to contact the poster
+          </p>
+        )}
       </div>
     </div>
+
+    {showMessageModal && (
+      <SendMessageModal item={item} onClose={() => setShowMessageModal(false)} />
+    )}
   );
 };
 

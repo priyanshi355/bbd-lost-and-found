@@ -19,6 +19,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/items', require('./routes/items'));
+app.use('/api/messages', require('./routes/messages'));
 
 // Global error handler
 app.use((err, req, res, next) => {
