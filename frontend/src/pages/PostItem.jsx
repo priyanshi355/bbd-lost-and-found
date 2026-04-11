@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { itemStore } from '../services/items.store';
+import { toast } from '../services/toast';
 import { useNavigate } from 'react-router-dom';
 
 const PostItem = () => {
@@ -21,7 +21,7 @@ const PostItem = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title || !formData.category || !formData.description) {
-      alert("Please fill in the required fields (Title, Category, Description).");
+      toast.error("Please fill in the required fields (Title, Category, Description).");
       return;
     }
 
@@ -37,7 +37,7 @@ const PostItem = () => {
       contact: formData.contact,
     });
 
-    alert(`Successfully reported ${type} item!`);
+    toast.success(`Successfully reported ${type} item!`);
     
     // Reset form state properly
     setFormData({ title: '', category: '', description: '', location: '', contact: '' });

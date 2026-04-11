@@ -192,3 +192,33 @@ a {
   outline: none;
   border-color: var(--primary-color);
 }
+
+/* --- PHASE 3 ADDITIONS --- */
+
+/* Toasts */
+.toast-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.5rem; z-index: 9999; }
+.toast { padding: 1rem 1.5rem; border-radius: 8px; background: var(--bg-card); backdrop-filter: blur(12px); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); animation: slideIn 0.3s ease forwards; border-left: 4px solid var(--primary-color); font-weight: 500; }
+.toast.error { border-left-color: var(--accent-color); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: var(--bg-dark); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; }
+.modal-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+.modal-close:hover { color: white; }
+
+/* Skeletons */
+.skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: skeletonLoading 1.5s infinite; border-radius: 4px; }
+@keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-text { height: 1rem; margin-bottom: 0.5rem; width: 100%; }
+.skeleton-title { height: 1.5rem; width: 70%; margin-bottom: 1rem; }
+
+/* Item Card Utilities */
+.item-card { cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; }
+.item-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.resolved-item { opacity: 0.5; filter: grayscale(0.8); }
+
+/* Search Bar Layout */
+.search-bar-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.filter-select { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: white; padding: 0.75rem; border-radius: 8px; outline: none; }
+

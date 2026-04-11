@@ -8,12 +8,14 @@ import FoundItems from './pages/FoundItems';
 import PostItem from './pages/PostItem';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
+import ToastContainer from './components/ToastContainer';
 
 function App() {
   return (
     <Router>
       <div className="app-container">
         <Navbar />
+        <ToastContainer />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginRegister />} />
