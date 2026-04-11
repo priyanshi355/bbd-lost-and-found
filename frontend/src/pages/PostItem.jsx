@@ -1,9 +1,11 @@
 import { itemStore } from '../services/items.store';
 import { toast } from '../services/toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/AuthContext';
 
 const PostItem = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [type, setType] = useState('lost');
   const [formData, setFormData] = useState({
     title: '',
@@ -29,6 +31,7 @@ const PostItem = () => {
 
     // Call Vanilla JS store implementation for CRUD Create
     itemStore.addItem({
+      authorId: user?.id,
       type,
       title: formData.title,
       category: formData.category,

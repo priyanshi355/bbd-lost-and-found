@@ -30,6 +30,11 @@ export const itemStore = {
     return items.filter(item => item.type === type);
   },
 
+  getItemsByUserId(userId) {
+    const items = this.getAllItems();
+    return items.filter(item => item.authorId === userId);
+  },
+
   addItem(data) {
     const items = this.getAllItems();
     const newItem = {

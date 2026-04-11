@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { itemStore } from '../services/items.store';
 import { toast } from '../services/toast';
+import { useAuth } from '../components/AuthContext';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -16,7 +18,9 @@ const Dashboard = () => {
   }, []);
 
   const loadItems = () => {
-    setItems(itemStore.getAllItems());
+    if (user) {
+      setItems(itemStore.getItemsByUserId(user.id));
+    }
     setIsLoading(false);
   };
 

@@ -9,24 +9,41 @@ import PostItem from './pages/PostItem';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import ToastContainer from './components/ToastContainer';
+import { AuthProvider } from './components/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
-    <Router>
-      <div className="app-container">
-        <Navbar />
-        <ToastContainer />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<LoginRegister />} />
-          <Route path="/lost" element={<LostItems />} />
-          <Route path="/found" element={<FoundItems />} />
-          <Route path="/post" element={<PostItem />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="app-container">
+          <Navbar />
+          <ToastContainer />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<LoginRegister />} />
+            <Route path="/lost" element={<LostItems />} />
+            <Route path="/found" element={<FoundItems />} />
+            
+            <Route path="/post" element={
+              <ProtectedRoute>
+                <PostItem />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminPanel />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
