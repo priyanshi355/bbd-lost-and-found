@@ -12,7 +12,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const savedUser = authApi.getCurrentUser();
     const token = authApi.getToken();
-    if (savedUser && token) setUser(savedUser);
+    if (savedUser && token) {
+      setUser(savedUser); // Show immediately from cache
+      // Then quietly refresh from server to pick up any profile changes
+      userApi.getMe()
+        .then(fresh => {
+          const merged = { ...savedUser, ...fresh };
+          localStorage.setItem('bbd_user', JSON.stringify(merged));
+          setUser(merged);
+        })
+        .catch(() => {}); // Silently fail if backend is unreachable
+    }
     setLoading(false);
   }, []);
 
