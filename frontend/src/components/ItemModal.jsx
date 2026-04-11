@@ -9,7 +9,8 @@ const ItemModal = ({ item, onClose }) => {
   if (!item) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <>
+      <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>&times;</button>
         <span style={{ 
@@ -101,6 +102,7 @@ const ItemModal = ({ item, onClose }) => {
     {showMessageModal && (
       <SendMessageModal item={item} onClose={() => setShowMessageModal(false)} />
     )}
+  </>
   );
 };
 
