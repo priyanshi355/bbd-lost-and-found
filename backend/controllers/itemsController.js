@@ -20,6 +20,7 @@ const createItem = async (req, res, next) => {
   try {
     const newItem = new Item({
       ...req.body,
+      authorId: req.user._id.toString()
     });
     const savedItem = await newItem.save();
     
