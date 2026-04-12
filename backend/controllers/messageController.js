@@ -7,10 +7,10 @@ const { sendGenericEmail } = require('../utils/emailService');
 // POST /api/messages/start — start a conversation (or get existing) and send first message
 const startConversation = async (req, res) => {
   try {
-    const { itemId, text } = req.body;
+    const { itemId, text, imageUrl } = req.body;
     const senderId = req.user._id.toString();
 
-    if (!text || !text.trim()) return res.status(400).json({ error: 'Message text is required' });
+    if (!text?.trim() && !imageUrl) return res.status(400).json({ error: 'Message text or image is required' });
 
     const item = await Item.findById(itemId);
     if (!item) return res.status(404).json({ error: 'Item not found' });
@@ -20,18 +20,19 @@ const startConversation = async (req, res) => {
 
     const participants = [senderId, receiverId].sort();
 
-    // Find existing conversation for this item between these two users
     let conversation = await Conversation.findOne({
       item: itemId,
       participants: { $all: participants }
     });
+
+    const preview = imageUrl ? '📷 Photo' : text.trim();
 
     if (!conversation) {
       conversation = await Conversation.create({
         item: itemId,
         itemTitle: item.title,
         participants,
-        lastMessage: text.trim(),
+        lastMessage: preview,
         lastMessageAt: new Date(),
         unreadCount: { [receiverId]: 1, [senderId]: 0 },
       });
@@ -42,13 +43,13 @@ const startConversation = async (req, res) => {
       sender: senderId,
       senderName: req.user.name,
       senderPic: req.user.profilePic || null,
-      text: text.trim(),
+      text: text?.trim() || '',
+      imageUrl: imageUrl || null,
       readBy: [senderId],
     });
 
-    // Update conversation last message + increment receiver unread
     const currentUnread = conversation.unreadCount.get(receiverId) || 0;
-    conversation.lastMessage = text.trim();
+    conversation.lastMessage = preview;
     conversation.lastMessageAt = new Date();
     conversation.unreadCount.set(receiverId, currentUnread + 1);
     await conversation.save();
@@ -131,28 +132,30 @@ const getMessages = async (req, res) => {
 // POST /api/messages/:conversationId/reply — send a reply
 const sendReply = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, imageUrl } = req.body;
     const senderId = req.user._id.toString();
-    if (!text || !text.trim()) return res.status(400).json({ error: 'Message text is required' });
+    if (!text?.trim() && !imageUrl) return res.status(400).json({ error: 'Message text or image is required' });
 
     const conversation = await Conversation.findById(req.params.conversationId);
     if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
     if (!conversation.participants.includes(senderId))
       return res.status(403).json({ error: 'Access denied' });
 
+    const preview = imageUrl ? '📷 Photo' : text.trim();
+
     const message = await Message.create({
       conversationId: conversation._id,
       sender: senderId,
       senderName: req.user.name,
       senderPic: req.user.profilePic || null,
-      text: text.trim(),
+      text: text?.trim() || '',
+      imageUrl: imageUrl || null,
       readBy: [senderId],
     });
 
-    // Update conversation, increment unread for the OTHER participant
     const receiverId = conversation.participants.find(p => p !== senderId);
     const currentUnread = conversation.unreadCount.get(receiverId) || 0;
-    conversation.lastMessage = text.trim();
+    conversation.lastMessage = preview;
     conversation.lastMessageAt = new Date();
     conversation.unreadCount.set(receiverId, currentUnread + 1);
     conversation.unreadCount.set(senderId, 0);

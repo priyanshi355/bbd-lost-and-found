@@ -38,11 +38,11 @@ export const messageApi = {
     return data;
   },
 
-  async sendReply(conversationId, text) {
+  async sendReply(conversationId, text, imageUrl = null) {
     const res = await fetch(`${API_BASE}/${conversationId}/reply`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, imageUrl }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to send reply');

@@ -15,6 +15,8 @@ const Inbox = () => {
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [pendingImage, setPendingImage] = useState(null); // base64 string
+  const fileInputRef = useRef(null);
   const [otherUserProfiles, setOtherUserProfiles] = useState({}); // userId -> profile
   const [showContactSheet, setShowContactSheet] = useState(false);
   const messagesEndRef = useRef(null);
@@ -76,18 +78,30 @@ const Inbox = () => {
 
   const handleSendReply = async (e) => {
     e.preventDefault();
-    if (!replyText.trim() || !activeConv) return;
+    if (!replyText.trim() && !pendingImage) return;
+    if (!activeConv) return;
     setSending(true);
     try {
-      const msg = await messageApi.sendReply(activeConv.id, replyText);
+      const msg = await messageApi.sendReply(activeConv.id, replyText, pendingImage || null);
       setMessages(prev => [...prev, msg]);
       setReplyText('');
+      setPendingImage(null);
       setConversations(prev => prev.map(c =>
-        c.id === activeConv.id ? { ...c, lastMessage: replyText } : c
+        c.id === activeConv.id ? { ...c, lastMessage: pendingImage ? '📷 Photo' : replyText } : c
       ));
     } catch (err) {
       toast.error(err.message || 'Failed to send reply');
     } finally { setSending(false); }
+  };
+
+  const handleImagePick = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) { toast.error('Image must be under 3MB'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => setPendingImage(ev.target.result);
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const getUnread = (conv) => {
@@ -235,7 +249,15 @@ const Inbox = () => {
                         <div className="inbox-bubble-wrap">
                           {!isMe && <div className="inbox-msg-name">{msg.senderName}</div>}
                           <div className={`inbox-bubble ${isMe ? 'bubble-me' : 'bubble-them'}`}>
-                            {msg.text}
+                            {msg.imageUrl && (
+                              <img
+                                src={msg.imageUrl}
+                                alt="Sent image"
+                                style={{ maxWidth: '220px', maxHeight: '220px', borderRadius: '8px', display: 'block', marginBottom: msg.text ? '0.4rem' : 0, cursor: 'pointer' }}
+                                onClick={() => window.open(msg.imageUrl, '_blank')}
+                              />
+                            )}
+                            {msg.text && <span>{msg.text}</span>}
                           </div>
                           <div className="inbox-msg-time">
                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -251,23 +273,45 @@ const Inbox = () => {
               </div>
 
               {/* Reply Box */}
-              <form onSubmit={handleSendReply} className="inbox-reply-box">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Type a message..."
-                  value={replyText}
-                  onChange={e => setReplyText(e.target.value)}
-                  style={{ flex: 1, marginBottom: 0 }}
-                />
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={sending || !replyText.trim()}
-                  style={{ padding: '0.75rem 1.5rem' }}
-                >
-                  {sending ? '...' : 'Send ➤'}
-                </button>
+              <form onSubmit={handleSendReply} className="inbox-reply-box" style={{ flexDirection: 'column', gap: '0.5rem' }}>
+                {/* Image Preview */}
+                {pendingImage && (
+                  <div style={{ position: 'relative', alignSelf: 'flex-start' }}>
+                    <img src={pendingImage} alt="preview" style={{ maxHeight: '80px', maxWidth: '120px', borderRadius: '8px', border: '2px solid var(--primary-color)' }} />
+                    <button
+                      type="button"
+                      onClick={() => setPendingImage(null)}
+                      style={{ position: 'absolute', top: -6, right: -6, background: 'var(--accent-color)', border: 'none', color: 'white', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >×</button>
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  {/* Image picker button */}
+                  <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleImagePick} />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="btn btn-secondary"
+                    style={{ padding: '0.75rem', fontSize: '1.2rem', flexShrink: 0 }}
+                    title="Send image"
+                  >📷</button>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={pendingImage ? 'Add a caption... (optional)' : 'Type a message...'}
+                    value={replyText}
+                    onChange={e => setReplyText(e.target.value)}
+                    style={{ flex: 1, marginBottom: 0 }}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={sending || (!replyText.trim() && !pendingImage)}
+                    style={{ padding: '0.75rem 1rem', flexShrink: 0 }}
+                  >
+                    {sending ? '...' : '➤'}
+                  </button>
+                </div>
               </form>
             </>
           )}
