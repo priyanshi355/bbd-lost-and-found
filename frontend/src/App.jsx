@@ -14,11 +14,13 @@ import MyItems from './pages/MyItems';
 import ToastContainer from './components/ToastContainer';
 import { AuthProvider } from './components/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <div className="app-container">
           <Navbar />
           <ToastContainer />
