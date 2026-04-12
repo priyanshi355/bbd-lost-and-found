@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CampusMap from './CampusMap';
 import SendMessageModal from './SendMessageModal';
 import ErrorBoundary from './ErrorBoundary';
@@ -8,6 +9,7 @@ import { toast } from '../services/toast';
 
 const ItemModal = ({ item, onClose, onOpenItem }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -18,6 +20,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   const [claimAnswer, setClaimAnswer] = useState('');
   const [verifyingClaim, setVerifyingClaim] = useState(false);
   const [sessionUnlocked, setSessionUnlocked] = useState(false);
+  const [authorProfile, setAuthorProfile] = useState(null);
 
   useEffect(() => {
     setClaimAnswer('');
@@ -32,8 +35,15 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   useEffect(() => {
     setActiveImg(0);
     setSimilarItems([]);
+    setAuthorProfile(null);
     if (itemId) {
       itemsApi.getSimilar(itemId).then(setSimilarItems).catch(() => {});
+      // Fetch the poster's public profile for avatar display
+      const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      fetch(`${API_BASE}/api/users/${item?.authorId}/public`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => data && setAuthorProfile(data.user))
+        .catch(() => {});
     }
   }, [itemId]);
 
@@ -106,12 +116,34 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           <ErrorBoundary>
             <button className="modal-close" onClick={onClose}>&times;</button>
 
-          <span style={{
-            background: item.type === 'lost' ? 'var(--primary-color)' : 'var(--secondary-color)',
-            color: 'white', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block', marginBottom: '1rem'
-          }}>
-            {item.type.toUpperCase() === 'LOST' ? 'LOST ITEM' : 'FOUND ITEM'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <span style={{
+              background: item.type === 'lost' ? 'var(--primary-color)' : 'var(--secondary-color)',
+              color: 'white', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block'
+            }}>
+              {item.type.toUpperCase() === 'LOST' ? 'LOST ITEM' : 'FOUND ITEM'}
+            </span>
+
+            {/* Clickable Author Chip */}
+            {authorProfile && (
+              <button
+                onClick={() => { onClose(); navigate(`/user/${item.authorId}`); }}
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--glass-border)', borderRadius: '20px', padding: '0.3rem 0.75rem 0.3rem 0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-light)', fontSize: '0.85rem', transition: 'all 0.2s' }}
+                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                title="View poster's profile"
+              >
+                {authorProfile.profilePic ? (
+                  <img src={authorProfile.profilePic} alt="" style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-color), #a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'white' }}>
+                    {authorProfile.name?.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <span style={{ fontWeight: 500 }}>{authorProfile.name}</span>
+              </button>
+            )}
+          </div>
 
           <h2 style={{ marginBottom: '0.5rem', fontSize: '1.4rem' }}>{item.title}</h2>
 

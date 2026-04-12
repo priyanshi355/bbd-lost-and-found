@@ -11,6 +11,7 @@ import AdminPanel from './pages/AdminPanel';
 import Profile from './pages/Profile';
 import Inbox from './pages/Inbox';
 import MyItems from './pages/MyItems';
+import PublicProfile from './pages/PublicProfile';
 import ToastContainer from './components/ToastContainer';
 import { AuthProvider } from './components/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -35,6 +36,7 @@ function App() {
             <Route path="/my-items" element={<ProtectedRoute><MyItems /></ProtectedRoute>} />
             <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
+            <Route path="/user/:userId" element={<PublicProfile />} />
           </Routes>
         </div>
       </Router>
