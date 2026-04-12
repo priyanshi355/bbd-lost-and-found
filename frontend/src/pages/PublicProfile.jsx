@@ -55,8 +55,8 @@ const PublicProfile = () => {
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😕</div>
         <h3 style={{ marginBottom: '0.5rem' }}>Profile Not Found</h3>
         <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>This user profile doesn't exist or was removed.</p>
-        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.7rem', marginBottom: '1.5rem', wordBreak: 'break-all' }}>
-          Requested ID: {userId}
+        <p style={{ color: 'var(--accent-color)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '1.5rem', wordBreak: 'break-all', background: 'rgba(244,63,94,0.1)', padding: '0.5rem', borderRadius: '4px' }}>
+          DEBUG: Requested ID = "{userId}"
         </p>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => navigate(-1)}>← Back</button>
