@@ -1,11 +1,16 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
+  connectionTimeout: 8000, 
+  greetingTimeout: 8000,
+  socketTimeout: 10000,
 });
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
