@@ -26,6 +26,9 @@ app.use('/api/items', require('./routes/items'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/admin', require('./routes/admin'));
 
+// Health check to verify deployment version
+app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '2.6-FIXED-ROUTING' }));
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('[CRITICAL] Server Error ->', err.stack);
