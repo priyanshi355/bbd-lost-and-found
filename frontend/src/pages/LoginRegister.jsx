@@ -11,6 +11,7 @@ const LoginRegister = () => {
   const [tab, setTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Forms
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
@@ -113,10 +114,14 @@ const LoginRegister = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input type="password" className="form-control" placeholder="••••••••" value={loginForm.password}
+                <input type={showPassword ? "text" : "password"} className="form-control" placeholder="••••••••" value={loginForm.password}
                   onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} required />
               </div>
-              <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="checkbox" checked={showPassword} onChange={() => setShowPassword(!showPassword)} />
+                  Show Password
+                </label>
                 <button type="button" className="auth-link" onClick={() => setTab('forgot')}>
                   Forgot Password?
                 </button>
@@ -142,7 +147,7 @@ const LoginRegister = () => {
             <form onSubmit={handleRegister}>
               <div className="form-group">
                 <label className="form-label">Full Name</label>
-                <input type="text" className="form-control" placeholder="Priyanshi Yadav" value={regForm.name}
+                <input type="text" className="form-control" placeholder="Your Name" value={regForm.name}
                   onChange={e => setRegForm({ ...regForm, name: e.target.value })} required />
               </div>
               <div className="form-group">
@@ -152,13 +157,19 @@ const LoginRegister = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input type="password" className="form-control" placeholder="Min. 6 characters" value={regForm.password}
+                <input type={showPassword ? "text" : "password"} className="form-control" placeholder="Min. 6 characters" value={regForm.password}
                   onChange={e => setRegForm({ ...regForm, password: e.target.value })} required />
               </div>
               <div className="form-group">
                 <label className="form-label">Confirm Password</label>
-                <input type="password" className="form-control" placeholder="Re-enter password" value={regForm.confirm}
+                <input type={showPassword ? "text" : "password"} className="form-control" placeholder="Re-enter password" value={regForm.confirm}
                   onChange={e => setRegForm({ ...regForm, confirm: e.target.value })} required />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="checkbox" checked={showPassword} onChange={() => setShowPassword(!showPassword)} />
+                  Show Passwords
+                </label>
               </div>
               <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
                 {loading ? 'Creating account...' : 'Create Account & Send OTP'}
@@ -243,13 +254,19 @@ const LoginRegister = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">New Password</label>
-                <input type="password" className="form-control" placeholder="Min. 6 characters"
+                <input type={showPassword ? "text" : "password"} className="form-control" placeholder="Min. 6 characters"
                   value={resetForm.newPassword} onChange={e => setResetForm({ ...resetForm, newPassword: e.target.value })} required />
               </div>
               <div className="form-group">
                 <label className="form-label">Confirm New Password</label>
-                <input type="password" className="form-control" placeholder="Re-enter password"
+                <input type={showPassword ? "text" : "password"} className="form-control" placeholder="Re-enter password"
                   value={resetForm.confirm} onChange={e => setResetForm({ ...resetForm, confirm: e.target.value })} required />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="checkbox" checked={showPassword} onChange={() => setShowPassword(!showPassword)} />
+                  Show Passwords
+                </label>
               </div>
               <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
                 {loading ? 'Resetting...' : 'Reset Password'}

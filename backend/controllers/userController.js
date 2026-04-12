@@ -27,4 +27,26 @@ const updateMe = async (req, res) => {
   }
 };
 
-module.exports = { getMe, updateMe };
+// GET /api/users/:id/public
+const getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('name course year bio profilePic role createdAt');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    // Also fetch their active items
+    const Item = require('../models/Item');
+    const items = await Item.find({ authorId: user._id.toString(), isBanned: { $ne: true } })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      user: user.toJSON(),
+      items
+    });
+  } catch (err) {
+    console.error('Public profile error:', err);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+};
+
+module.exports = { getMe, updateMe, getPublicProfile };
