@@ -30,16 +30,19 @@ const updateMe = async (req, res) => {
 // GET /api/users/:id/public
 const getPublicProfile = async (req, res) => {
   try {
-    const mongoose = require('mongoose');
-    const id = req.params.id;
-
-    // Validate ObjectId format before querying
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({ error: 'User not found' });
+    const id = req.params.id ? req.params.id.trim() : null;
+    if (!id || id === 'undefined' || id === 'null') {
+      return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const user = await User.findById(id)
-      .select('name course year bio profilePic role createdAt');
+    // Try finding by ID directly, Mongoose handles string casting
+    let user = null;
+    try {
+      user = await User.findById(id).select('name course year bio profilePic role createdAt');
+    } catch (err) {
+      // If casting failed, user stays null
+    }
+
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const Item = require('../models/Item');

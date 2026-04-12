@@ -22,8 +22,10 @@ const Inbox = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    loadConversations();
-  }, []);
+    if (user) {
+      loadConversations();
+    }
+  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,7 +68,8 @@ const Inbox = () => {
   };
 
   const getOtherUserId = (conv) => {
-    return conv.participants?.find(p => p !== user.id);
+    if (!conv.participants || !user?.id) return null;
+    return conv.participants.find(p => p.trim() !== user.id.trim());
   };
 
   // Fetch profile of other user in a conversation
@@ -87,7 +90,7 @@ const Inbox = () => {
     setActiveConv(conv);
     setShowContactSheet(false);
     const otherId = getOtherUserId(conv);
-    if (otherId) fetchOtherProfile(otherId);
+    if (otherId) fetchOtherProfile(otherId.trim());
     try {
       const msgs = await messageApi.getMessages(conv.id);
       setMessages(msgs);
@@ -348,7 +351,7 @@ const Inbox = () => {
       </div>
 
       {/* WhatsApp-style Contact Info Bottom Sheet */}
-      {showContactSheet && activeOtherProfile && (
+      {showContactSheet && activeConv && (
         <div
           className="modal-overlay"
           onClick={() => setShowContactSheet(false)}
@@ -362,7 +365,7 @@ const Inbox = () => {
 
             {/* Large Avatar */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', marginTop: '0.5rem' }}>
-              {activeOtherProfile.profilePic ? (
+              {activeOtherProfile?.profilePic ? (
                 <img
                   src={activeOtherProfile.profilePic}
                   alt=""
@@ -376,27 +379,35 @@ const Inbox = () => {
                   fontSize: '2.4rem', fontWeight: 700, color: 'white',
                   border: '3px solid rgba(167,139,250,0.4)'
                 }}>
-                  {activeOtherProfile.name?.[0].toUpperCase()}
+                  {(activeOtherProfile?.name || activeConv.itemTitle || '?')[0].toUpperCase()}
                 </div>
               )}
             </div>
 
-            <h2 style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>{activeOtherProfile.name}</h2>
+            <h2 style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>{activeOtherProfile?.name || 'Loading Name...'}</h2>
 
-            {activeOtherProfile.course && (
-              <p style={{ color: 'var(--primary-color)', fontWeight: 500, marginBottom: '0.5rem' }}>
-                {activeOtherProfile.course}{activeOtherProfile.year ? ` · ${activeOtherProfile.year} Year` : ''}
-              </p>
-            )}
-            {activeOtherProfile.rollNo && (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                🎓 {activeOtherProfile.rollNo}
-              </p>
-            )}
-            {activeOtherProfile.bio && (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', fontStyle: 'italic' }}>
-                "{activeOtherProfile.bio}"
-              </p>
+            {activeOtherProfile ? (
+              <>
+                {activeOtherProfile.course && (
+                  <p style={{ color: 'var(--primary-color)', fontWeight: 500, marginBottom: '0.5rem' }}>
+                    {activeOtherProfile.course}{activeOtherProfile.year ? ` · ${activeOtherProfile.year} Year` : ''}
+                  </p>
+                )}
+                {activeOtherProfile.rollNo && (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                    🎓 {activeOtherProfile.rollNo}
+                  </p>
+                )}
+                {activeOtherProfile.bio && (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', fontStyle: 'italic' }}>
+                    "{activeOtherProfile.bio}"
+                  </p>
+                )}
+              </>
+            ) : (
+               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                 Talking about: {activeConv.itemTitle}
+               </p>
             )}
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
