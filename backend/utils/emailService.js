@@ -1,19 +1,34 @@
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-  connectionTimeout: 8000, 
-  greetingTimeout: 8000,
-  socketTimeout: 10000,
-});
-
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+const sendBrevoEmail = async (toEmail, subject, htmlContent) => {
+  if (!process.env.BREVO_API_KEY) {
+    console.error('[CRITICAL] Missing BREVO_API_KEY in .env file!');
+    throw new Error('Email service configuration is missing block out email.');
+  }
+
+  const payload = {
+    sender: { name: "BBD Lost & Found", email: process.env.GMAIL_USER || 'priyanshiyadav2505@gmail.com' },
+    to: [{ email: toEmail }],
+    subject: subject,
+    htmlContent: htmlContent
+  };
+
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': process.env.BREVO_API_KEY,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    console.error('[EMAIL ERROR] Brevo API Failed:', response.status, errorData);
+    throw new Error('Failed to dispatch email via HTTP API.');
+  }
+};
 
 const sendOtpEmail = async (toEmail, otp, subject, purpose) => {
   const html = `
@@ -30,13 +45,7 @@ const sendOtpEmail = async (toEmail, otp, subject, purpose) => {
       <p style="color: #475569; font-size: 0.8rem;">© 2026 BBD Lost & Found Platform</p>
     </div>
   `;
-
-  await transporter.sendMail({
-    from: `"BBD Lost & Found" <${process.env.GMAIL_USER}>`,
-    to: toEmail,
-    subject,
-    html,
-  });
+  await sendBrevoEmail(toEmail, subject, html);
 };
 
 const sendGenericEmail = async (toEmail, subject, htmlContent) => {
@@ -48,12 +57,7 @@ const sendGenericEmail = async (toEmail, subject, htmlContent) => {
       <p style="color: #475569; font-size: 0.8rem;">© 2026 BBD Lost & Found Platform</p>
     </div>
   `;
-  await transporter.sendMail({
-    from: `"BBD Lost & Found" <${process.env.GMAIL_USER}>`,
-    to: toEmail,
-    subject,
-    html,
-  });
+  await sendBrevoEmail(toEmail, subject, html);
 };
 
 module.exports = { generateOtp, sendOtpEmail, sendGenericEmail };
