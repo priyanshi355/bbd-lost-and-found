@@ -86,7 +86,10 @@ const Navbar = () => {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.email}</div>
                   </div>
                   <Link to="/profile" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                    👤 My Profile
+                    👤 Edit Profile
+                  </Link>
+                  <Link to={`/user/${user.id}`} className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    👁️ View Public Profile
                   </Link>
                   <Link to="/my-items" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
                     📋 My Postings
