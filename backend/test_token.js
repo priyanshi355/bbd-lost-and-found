@@ -1,0 +1,1 @@
+const jwt = require('jsonwebtoken'); console.log(jwt.sign({ id: '69da95abc73e1b1cf84acf87' }, 'bbd_lost_found_jwt_secret_2026_priyanshi'));

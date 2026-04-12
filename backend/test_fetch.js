@@ -1,0 +1,1 @@
+fetch('http://localhost:5000/api/items/my-items', { headers: { 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGE5NWFiYzczZTFiMWNmODRhY2Y4NyIsImlhdCI6MTc3NTk0MjEzN30.0pCSReNYXXJ4mbEoEwVxsL7paH-Vms5F4EPxIEaIw2U' } }).then(res => res.text()).then(t => console.log('STATUS:', t));

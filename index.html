@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Interactive Particle System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #050510;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+        }
+        #loading {
+            font-size: 28px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            transition: opacity 0.8s ease;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+        }
+        #instructions {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.5;
+            transition: opacity 0.8s ease;
+        }
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        video {
+            display: none; /* We don't need to see the raw video, AI processes it invisibly */
+        }
+        
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: #00e5ff;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <!-- MediaPipe dependencies for Hand Tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <!-- Three.js dependency for 3D engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="ui-layer">
+        <div class="loader-spinner" id="spinner"></div>
+        <div id="loading">Initializing Camera & AI</div>
+        <div id="instructions">Please allow camera permissions.<br/>Open and close your hand to interact with the particle system.</div>
+    </div>
+    <video class="input_video"></video>
+
+    <script>
+        // --- THREE.JS SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050510, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 150;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+        document.body.appendChild(renderer.domElement);
+
+        // Responsive canvas
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- PARTICLE SYSTEM ---
+        const particleCount = 20000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const basePositions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        const color = new THREE.Color();
+
+        // Create a sphere of particles clustered dynamically
+        for (let i = 0; i < particleCount; i++) {
+            // Generate points inside a sphere for a nice volume
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = Math.cbrt(Math.random()) * 50; // Cube root for even distribution in volume
+            
+            const x = r * Math.sin(phi) * Math.cos(theta);
+            const y = r * Math.sin(phi) * Math.sin(theta);
+            const z = r * Math.cos(phi);
+
+            positions[i * 3 + 0] = x;
+            positions[i * 3 + 1] = y;
+            positions[i * 3 + 2] = z;
+
+            basePositions[i * 3 + 0] = x;
+            basePositions[i * 3 + 1] = y;
+            basePositions[i * 3 + 2] = z;
+
+            // Base colors (vibrant cyan to purple hues)
+            color.setHSL(0.5 + Math.random() * 0.4, 0.8, 0.6);
+            colors[i * 3 + 0] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        // Procedural glowing dot texture
+        const createDotTexture = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.1, 'rgba(255,255,255,0.8)');
+            gradient.addColorStop(0.4, 'rgba(255,255,255,0.3)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
+        };
+
+        const material = new THREE.PointsMaterial({
+            size: 2.5,
+            vertexColors: true,
+            map: createDotTexture(),
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // --- HAND TRACKING & METRICS ---
+        let targetOpenness = 0.5; 
+        let currentOpenness = 0.5;
+        
+        // Measure tension/closing based on average distance from wrist to all fingertips
+        function calculateHandOpenness(landmarks) {
+            if (!landmarks || landmarks.length === 0) return 0.5;
+            
+            const wrist = landmarks[0];
+            const tips = [4, 8, 12, 16, 20]; // Thumb, Index, Middle, Ring, Pinky
+            let totalDistance = 0;
+            
+            for (let i = 0; i < tips.length; i++) {
+                const tip = landmarks[tips[i]];
+                const dx = tip.x - wrist.x;
+                const dy = tip.y - wrist.y;
+                const dz = tip.z - wrist.z;
+                totalDistance += Math.sqrt(dx*dx + dy*dy + dz*dz);
+            }
+            
+            // Typical distance values are around 0.15 (closed fist) to 0.50+ (fully open)
+            const averageDistance = totalDistance / tips.length;
+            
+            // Normalize and clamp between 0.0 (closed) and 1.0 (open)
+            return Math.max(0, Math.min(1, (averageDistance - 0.15) / 0.35));
+        }
+
+        // --- MEDIAPIPE INITIALIZATION ---
+        const videoElement = document.querySelector('.input_video');
+        const loadingElement = document.getElementById('loading');
+        const instructionsElement = document.getElementById('instructions');
+        const spinnerElement = document.getElementById('spinner');
+
+        function onResults(results) {
+            // Hide loading overlay on first successful track
+            if (!loadingElement.classList.contains('hidden')) {
+                loadingElement.classList.add('hidden');
+                instructionsElement.classList.add('hidden');
+                spinnerElement.classList.add('hidden');
+            }
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                // If multiple hands, average their openness
+                let overallOpenness = 0;
+                for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                    overallOpenness += calculateHandOpenness(results.multiHandLandmarks[i]);
+                }
+                overallOpenness /= results.multiHandLandmarks.length;
+                
+                targetOpenness = overallOpenness;
+            } else {
+                // Decay back to default state when hand leaves view
+                targetOpenness = 0.5;
+            }
+        }
+
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+        
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1, // Balance between performance and accuracy
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        
+        hands.onResults(onResults);
+
+        // Start webcam via CameraUtils
+        const camera_utils = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 640,
+            height: 480
+        });
+        camera_utils.start();
+
+        // --- RENDER LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            // Smooth interpolation (lerp)
+            currentOpenness += (targetOpenness - currentOpenness) * 0.15;
+
+            // 1) Scale of the entire particle group
+            // Open: scales up, Closed: scales down
+            const globalScale = 0.6 + (currentOpenness * 1.4); 
+            particles.scale.set(globalScale, globalScale, globalScale);
+            
+            // Slow ambient rotation
+            particles.rotation.y = time * 0.15;
+            particles.rotation.z = time * 0.05;
+
+            // 2) Expansion/Contraction and internal particle behavior
+            const positionAttribute = geometry.getAttribute('position');
+            const posArray = positionAttribute.array;
+            
+            // Base radius expansion inside the group
+            const radiusMultiplier = 0.4 + (currentOpenness * 1.6);
+            // More jitter/tension when closed (openness approaches 0)
+            const jitterAmount = Math.max(0, (1.0 - currentOpenness)) * 6.0;
+
+            for (let i = 0; i < particleCount; i++) {
+                const ix3 = i * 3;
+                
+                const bx = basePositions[ix3 + 0];
+                const by = basePositions[ix3 + 1];
+                const bz = basePositions[ix3 + 2];
+                
+                // Procedural sine-based noise mapped per-particle
+                const noiseFactor = time * 2.0 + i;
+
+                // Expand/contract + scatter/tense
+                posArray[ix3 + 0] = (bx * radiusMultiplier) + Math.sin(noiseFactor) * jitterAmount;
+                posArray[ix3 + 1] = (by * radiusMultiplier) + Math.cos(noiseFactor * 1.1) * jitterAmount;
+                posArray[ix3 + 2] = (bz * radiusMultiplier) + Math.sin(noiseFactor * 0.9) * jitterAmount;
+            }
+
+            positionAttribute.needsUpdate = true;
+
+            // Dynamic color tinting based on state
+            // Closed: warm tense color (reddish/orange), Open: cool calm color (cyan/blue)
+            const currentHue = 0.05 + currentOpenness * 0.55; 
+            const tint = new THREE.Color();
+            tint.setHSL(currentHue, 0.9, 0.5);
+            material.color.lerp(tint, 0.1);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
