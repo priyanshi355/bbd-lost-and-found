@@ -22,8 +22,10 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-light);
   min-height: 100vh;
-  overflow-x: hidden;
+  min-height: 100dvh;
+  overflow-x: hidden !important;
   width: 100%;
+  position: relative;
 }
 
 /* Background Gradients */
@@ -171,18 +173,20 @@ a {
     flex-direction: column;
     padding-top: 5rem;
     transform: translateX(100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, visibility 0.3s;
     border-left: 1px solid var(--glass-border);
     box-shadow: -10px 0 30px rgba(0,0,0,0.5);
     z-index: 99;
     align-items: flex-start;
     padding-left: 2rem;
     visibility: hidden;
+    pointer-events: none;
   }
   
   .nav-links.mobile-open {
     transform: translateX(0);
     visibility: visible;
+    pointer-events: auto;
   }
 
   .nav-user-actions {
@@ -737,6 +741,7 @@ a {
   display: grid;
   grid-template-columns: 320px 1fr;
   height: calc(100vh - 70px);
+  height: calc(100dvh - 70px);
   overflow: hidden;
   width: 100%;
 }
