@@ -269,35 +269,33 @@ a {
 /* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
 .modal-content { background: var(--bg-dark); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; }
+.modal-item-content { max-width: 580px; }
 .modal-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
 .modal-close:hover { color: white; }
 
 @media (max-width: 480px) {
   .modal-overlay { align-items: flex-end; padding: 0; }
-  .modal-content { 
+  .modal-content, .modal-item-content { 
     padding: 1rem; 
-    max-height: 78vh; 
+    max-height: 72vh; 
     border-radius: 20px 20px 0 0; 
     animation: slideUp 0.28s ease-out;
-    width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     border-left: none;
     border-right: none;
     border-bottom: none;
+    margin: 0;
   }
   .modal-close { top: 0.6rem; right: 0.75rem; background: rgba(255,255,255,0.1); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 1.1rem; }
-  .modal-image-main { max-height: 140px !important; }
-  /* Drag indicator */
+  .modal-image-main { max-height: 130px !important; }
   .modal-content::before { content: ''; display: block; width: 36px; height: 4px; background: rgba(255,255,255,0.25); border-radius: 2px; margin: 0 auto 0.75rem; }
-  /* Shrink text sizes in modal on mobile */
-  .modal-content h2 { font-size: 1.1rem !important; margin-bottom: 0.35rem !important; }
-  .modal-content h4 { font-size: 0.8rem !important; }
-  /* Hide similar items entirely on mobile to save space */
+  .modal-content h2 { font-size: 1.05rem !important; margin-bottom: 0.3rem !important; }
+  .modal-content h4 { font-size: 0.78rem !important; }
   .modal-similar-section { display: none !important; }
-  /* Shrink meta row */
-  .modal-meta-row { font-size: 0.78rem !important; gap: 0.5rem !important; }
-  /* Tighter share buttons */
-  .modal-share-row { margin-bottom: 0.75rem !important; }
-  .modal-share-row .btn { padding: 0.45rem 0.35rem !important; font-size: 0.8rem !important; }
+  .modal-meta-row { font-size: 0.75rem !important; gap: 0.4rem !important; margin-bottom: 0.6rem !important; }
+  .modal-share-row { margin-bottom: 0.6rem !important; }
+  .modal-share-row .btn { padding: 0.4rem 0.3rem !important; font-size: 0.78rem !important; }
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }

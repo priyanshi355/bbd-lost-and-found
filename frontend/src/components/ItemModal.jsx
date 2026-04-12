@@ -112,7 +112,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '580px' }}>
+        <div className="modal-content modal-item-content" onClick={e => e.stopPropagation()}>
           <ErrorBoundary>
             <button className="modal-close" onClick={onClose}>&times;</button>
 
