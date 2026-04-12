@@ -30,13 +30,20 @@ const updateMe = async (req, res) => {
 // GET /api/users/:id/public
 const getPublicProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const mongoose = require('mongoose');
+    const id = req.params.id;
+
+    // Validate ObjectId format before querying
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = await User.findById(id)
       .select('name course year bio profilePic role createdAt');
     if (!user) return res.status(404).json({ error: 'User not found' });
-    
-    // Also fetch their active items
+
     const Item = require('../models/Item');
-    const items = await Item.find({ authorId: user._id.toString(), isBanned: { $ne: true } })
+    const items = await Item.find({ authorId: id, isBanned: { $ne: true } })
       .sort({ createdAt: -1 });
 
     res.json({
