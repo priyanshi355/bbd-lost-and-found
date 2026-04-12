@@ -1,6 +1,9 @@
 {
   "name": "bbd-lost-found-backend",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "Backend API for BBD Lost & Found Platform",
   "main": "server.js",
   "scripts": {
