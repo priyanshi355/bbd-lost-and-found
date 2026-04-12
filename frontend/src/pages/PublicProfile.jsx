@@ -54,8 +54,14 @@ const PublicProfile = () => {
       <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center', maxWidth: '400px' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😕</div>
         <h3 style={{ marginBottom: '0.5rem' }}>Profile Not Found</h3>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>This user profile doesn't exist or was removed.</p>
-        <button className="btn btn-primary" onClick={() => navigate(-1)}>← Go Back</button>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>This user profile doesn't exist or was removed.</p>
+        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.7rem', marginBottom: '1.5rem', wordBreak: 'break-all' }}>
+          Requested ID: {userId}
+        </p>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => navigate(-1)}>← Back</button>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => window.location.reload()}>🔄 Retry</button>
+        </div>
       </div>
     </div>
   );

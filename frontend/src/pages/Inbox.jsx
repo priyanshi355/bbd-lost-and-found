@@ -19,6 +19,7 @@ const Inbox = () => {
   const fileInputRef = useRef(null);
   const [otherUserProfiles, setOtherUserProfiles] = useState({}); // userId -> profile
   const [showContactSheet, setShowContactSheet] = useState(false);
+  const [sheetUserId, setSheetUserId] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -194,7 +195,13 @@ const Inbox = () => {
                     <div 
                       className="inbox-conv-avatar" 
                       style={{ overflow: 'hidden', padding: 0, cursor: 'pointer' }}
-                      onClick={(e) => { e.stopPropagation(); if (otherId) navigate(`/user/${otherId}`); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if (otherId) {
+                          setSheetUserId(otherId.trim());
+                          setShowContactSheet(true);
+                        }
+                      }}
                     >
                       {otherProfile?.profilePic
                         ? <img src={otherProfile.profilePic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
@@ -229,17 +236,19 @@ const Inbox = () => {
           ) : (
             <>
               {/* WhatsApp-style Thread Header — clickable */}
-              <div
-                className="inbox-thread-header"
-                onClick={() => setShowContactSheet(true)}
-                style={{ cursor: 'pointer' }}
-                title="View contact info"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div 
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+                  onClick={() => {
+                    if (activeOtherUserId) {
+                      setSheetUserId(activeOtherUserId.trim());
+                      setShowContactSheet(true);
+                    }
+                  }}
+                >
                   {renderAvatar(activeOtherProfile, 40)}
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1rem' }}>
-                      {activeOtherProfile?.name || 'Unknown User'}
+                      {activeOtherProfile?.name || 'Loading...'}
                     </h3>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: 0 }}>
                       {activeOtherProfile?.course ? `${activeOtherProfile.course}${activeOtherProfile.year ? ' · ' + activeOtherProfile.year + ' Year' : ''}` : `re: ${activeConv.itemTitle}`}
@@ -268,7 +277,12 @@ const Inbox = () => {
                         {!isMe && (
                           <div
                             className="inbox-msg-avatar"
-                            onClick={() => setShowContactSheet(true)}
+                            onClick={() => {
+                              if (activeOtherUserId) {
+                                setSheetUserId(activeOtherUserId.trim());
+                                setShowContactSheet(true);
+                              }
+                            }}
                             style={{ cursor: 'pointer' }}
                             title="See DP info"
                           >
@@ -351,7 +365,7 @@ const Inbox = () => {
       </div>
 
       {/* WhatsApp-style Contact Info Bottom Sheet */}
-      {showContactSheet && activeConv && (
+      {showContactSheet && sheetUserId && (
         <div
           className="modal-overlay"
           onClick={() => setShowContactSheet(false)}
@@ -364,68 +378,75 @@ const Inbox = () => {
             <button className="modal-close" onClick={() => setShowContactSheet(false)}>&times;</button>
 
             {/* Large Avatar */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', marginTop: '0.5rem' }}>
-              {activeOtherProfile?.profilePic ? (
-                <img
-                  src={activeOtherProfile.profilePic}
-                  alt=""
-                  style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary-color)' }}
-                />
-              ) : (
-                <div style={{
-                  width: '90px', height: '90px', borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--primary-color), #a78bfa)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '2.4rem', fontWeight: 700, color: 'white',
-                  border: '3px solid rgba(167,139,250,0.4)'
-                }}>
-                  {(activeOtherProfile?.name || activeConv.itemTitle || '?')[0].toUpperCase()}
-                </div>
-              )}
-            </div>
+            {(() => {
+              const profile = otherUserProfiles[sheetUserId];
+              return (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', marginTop: '0.5rem' }}>
+                    {profile?.profilePic ? (
+                      <img
+                        src={profile.profilePic}
+                        alt=""
+                        style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary-color)' }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '90px', height: '90px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, var(--primary-color), #a78bfa)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '2.4rem', fontWeight: 700, color: 'white',
+                        border: '3px solid rgba(167,139,250,0.4)'
+                      }}>
+                        {(profile?.name || '?')[0].toUpperCase()}
+                      </div>
+                    )}
+                  </div>
 
-            <h2 style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>{activeOtherProfile?.name || 'Loading Name...'}</h2>
+                  <h2 style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>{profile?.name || 'Loading Name...'}</h2>
 
-            {activeOtherProfile ? (
-              <>
-                {activeOtherProfile.course && (
-                  <p style={{ color: 'var(--primary-color)', fontWeight: 500, marginBottom: '0.5rem' }}>
-                    {activeOtherProfile.course}{activeOtherProfile.year ? ` · ${activeOtherProfile.year} Year` : ''}
-                  </p>
-                )}
-                {activeOtherProfile.rollNo && (
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                    🎓 {activeOtherProfile.rollNo}
-                  </p>
-                )}
-                {activeOtherProfile.bio && (
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', fontStyle: 'italic' }}>
-                    "{activeOtherProfile.bio}"
-                  </p>
-                )}
-              </>
-            ) : (
-               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                 Talking about: {activeConv.itemTitle}
-               </p>
-            )}
+                  {profile ? (
+                    <>
+                      {profile.course && (
+                        <p style={{ color: 'var(--primary-color)', fontWeight: 500, marginBottom: '0.5rem' }}>
+                          {profile.course}{profile.year ? ` · ${profile.year} Year` : ''}
+                        </p>
+                      )}
+                      {profile.rollNo && (
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                          🎓 {profile.rollNo}
+                        </p>
+                      )}
+                      {profile.bio && (
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', fontStyle: 'italic' }}>
+                          "{profile.bio}"
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                       Loading contact information...
+                     </p>
+                  )}
 
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-              <button
-                className="btn btn-secondary"
-                style={{ flex: 1 }}
-                onClick={() => setShowContactSheet(false)}
-              >
-                Close
-              </button>
-              <button
-                className="btn btn-primary"
-                style={{ flex: 1 }}
-                onClick={() => { setShowContactSheet(false); navigate(`/user/${activeOtherUserId}`); }}
-              >
-                Full Profile
-              </button>
-            </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ flex: 1 }}
+                      onClick={() => setShowContactSheet(false)}
+                    >
+                      Close
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      style={{ flex: 1 }}
+                      onClick={() => { setShowContactSheet(false); navigate(`/user/${sheetUserId}`); }}
+                    >
+                      Full Profile
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
