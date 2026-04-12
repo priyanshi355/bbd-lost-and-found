@@ -106,43 +106,12 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           <ErrorBoundary>
             <button className="modal-close" onClick={onClose}>&times;</button>
 
-          {/* Type Badge */}
           <span style={{
             background: item.type === 'lost' ? 'var(--primary-color)' : 'var(--secondary-color)',
             color: 'white', padding: '0.3rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block', marginBottom: '1rem'
           }}>
             {item.type.toUpperCase() === 'LOST' ? 'LOST ITEM' : 'FOUND ITEM'}
           </span>
-
-          {/* Image Gallery */}
-          {allImages.length > 0 && (
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ borderRadius: '10px', overflow: 'hidden', marginBottom: '0.5rem', background: 'rgba(0,0,0,0.3)' }}>
-                <img
-                  src={allImages[activeImg]}
-                  alt={item.title}
-                  style={{ width: '100%', maxHeight: '260px', objectFit: 'cover', display: 'block' }}
-                />
-              </div>
-              {allImages.length > 1 && (
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {allImages.map((img, i) => (
-                    <img
-                      key={i}
-                      src={img}
-                      alt=""
-                      onClick={() => setActiveImg(i)}
-                      style={{
-                        width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px',
-                        cursor: 'pointer', border: `2px solid ${i === activeImg ? 'var(--primary-color)' : 'transparent'}`,
-                        opacity: i === activeImg ? 1 : 0.6, transition: 'all 0.2s',
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           <h2 style={{ marginBottom: '0.5rem', fontSize: '1.4rem' }}>{item.title}</h2>
 
@@ -154,44 +123,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
             {item.resolved && <span style={{ color: 'var(--secondary-color)' }}>✅ Resolved</span>}
           </div>
 
-          {/* Description */}
-          {item.description && (
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Description</h4>
-              <p style={{ lineHeight: 1.65 }}>{item.description}</p>
-            </div>
-          )}
-
-          {/* Contact */}
-          {!isLocked && item.contact && (
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Contact Info</h4>
-              <p>{item.contact}</p>
-            </div>
-          )}
-
-          {/* Map */}
-          {item.lat && item.lng && (
-            <div style={{ marginBottom: '1rem' }}>
-              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>📍 Location on Campus Map</h4>
-              <CampusMap lat={item.lat} lng={item.lng} readOnly={true} height="200px" />
-            </div>
-          )}
-
-          {/* Share & Actions Row */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem', marginTop: '1.25rem' }}>
-            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }}>
-              📲 WhatsApp
-            </button>
-            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1 }}>
-              🔗 Copy Link
-            </button>
-            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1 }}>
-              📷 QR Code
-            </button>
-          </div>
-
-          {/* Send Message / Report */}
+          {/* --- MOVED ACTIONS UP TO PREVENT SCROLLING ON MOBILE --- */}
           {isLocked ? (
             <div style={{ background: 'rgba(244, 63, 94, 0.05)', border: '1px solid rgba(244, 63, 94, 0.2)', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
               <h4 style={{ color: 'var(--accent-color)', marginBottom: '0.5rem' }}>🔒 Locked: Claim this Item</h4>
@@ -218,29 +150,93 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
             </div>
           ) : (
             user && user.id !== item.authorId && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setShowMessageModal(true)}>
-                  💬 Send Internal Message
-                </button>
-                {whatsAppDM && (
-                  <button 
-                    className="btn btn-secondary" 
-                    style={{ width: '100%', background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }} 
-                    onClick={messagePosterOnWhatsApp}
-                  >
-                    📲 Message on WhatsApp
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button className="btn btn-primary" style={{ flex: 1, padding: '0.75rem' }} onClick={() => setShowMessageModal(true)}>
+                    💬 Message App
                   </button>
-                )}
+                  {whatsAppDM && (
+                    <button 
+                      className="btn btn-secondary" 
+                      style={{ flex: 1, padding: '0.75rem', background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }} 
+                      onClick={messagePosterOnWhatsApp}
+                    >
+                      📲 WhatsApp DM
+                    </button>
+                  )}
+                </div>
               </div>
             )
           )}
           {!user && (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-              <a href="/login" style={{ color: 'var(--primary-color)' }}>Login</a> to contact the poster
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+              <a href="/login" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>Login</a> to contact the poster
             </p>
           )}
+
+          {/* Share Row Compact */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>📲 Share</button>
+            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>🔗 Link</button>
+            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>📷 QR</button>
+          </div>
+
+          {/* Image Gallery */}
+          {allImages.length > 0 && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ borderRadius: '10px', overflow: 'hidden', marginBottom: '0.5rem', background: 'rgba(0,0,0,0.3)' }}>
+                <img
+                  src={allImages[activeImg]}
+                  alt={item.title}
+                  className="modal-image-main"
+                  style={{ width: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+              {allImages.length > 1 && (
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {allImages.map((img, i) => (
+                    <img
+                      key={i}
+                      src={img}
+                      alt=""
+                      onClick={() => setActiveImg(i)}
+                      style={{
+                        width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px',
+                        cursor: 'pointer', border: `2px solid ${i === activeImg ? 'var(--primary-color)' : 'transparent'}`,
+                        opacity: i === activeImg ? 1 : 0.6, transition: 'all 0.2s',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Description */}
+          {item.description && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <p style={{ lineHeight: 1.65 }}>{item.description}</p>
+            </div>
+          )}
+
+          {/* Contact Details strictly if available and they scroll down to read more context */}
+          {!isLocked && item.contact && (
+            <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.25rem', fontSize: '0.85rem' }}>Contact Details Provided</h4>
+              <p style={{ fontWeight: '500' }}>{item.contact}</p>
+            </div>
+          )}
+
+          {/* Map */}
+          {item.lat && item.lng && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>📍 Location on Campus Map</h4>
+              <CampusMap lat={item.lat} lng={item.lng} readOnly={true} height="180px" />
+            </div>
+          )}
+
           {user && user.id !== item.authorId && (
-            <button onClick={() => setShowReportModal(true)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer', width: '100%', textDecoration: 'underline' }}>
+            <button onClick={() => setShowReportModal(true)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer', width: '100%', textDecoration: 'underline', marginTop: '1rem' }}>
               🚩 Report this listing
             </button>
           )}
