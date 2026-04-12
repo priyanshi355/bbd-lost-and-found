@@ -70,7 +70,7 @@ const Inbox = () => {
 
   const getOtherUserId = (conv) => {
     if (!conv.participants || !user?.id) return null;
-    return conv.participants.find(p => p.trim() !== user.id.trim());
+    return conv.participants.find(p => p && p.trim() !== user.id.trim());
   };
 
   // Fetch profile of other user in a conversation
