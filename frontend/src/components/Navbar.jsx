@@ -42,7 +42,7 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="nav-brand">BBD Lost & Found <span style={{fontSize:'0.6rem', verticalAlign:'middle', opacity:0.5}}>v2.0-FIX</span></Link>
+      <Link to="/" className="nav-brand">BBD Lost & Found</Link>
       
       <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
         {mobileMenuOpen ? '✕' : '☰'}
