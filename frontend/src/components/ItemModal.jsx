@@ -148,7 +148,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           <h2 style={{ marginBottom: '0.5rem', fontSize: '1.4rem' }}>{item.title}</h2>
 
           {/* Meta row */}
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          <div className="modal-meta-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
             <span>📍 {item.location}</span>
             <span>🏷️ {item.category}</span>
             <span>📅 {new Date(item.createdAt || item.date).toLocaleDateString()}</span>
@@ -205,9 +205,14 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
               <a href="/login" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>Login</a> to contact the poster
             </p>
           )}
+          {user && user.id === item.authorId && (
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '1rem', padding: '0.5rem 0.75rem', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', border: '1px dashed var(--glass-border)' }}>
+              ✏️ <strong style={{ color: 'var(--text-light)' }}>This is your listing</strong> — others can message you here
+            </div>
+          )}
 
           {/* Share Row Compact */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <div className="modal-share-row" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
             <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>📲 Share</button>
             <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>🔗 Link</button>
             <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>📷 QR</button>
@@ -275,7 +280,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
           {/* Similar Items */}
           {similarItems.length > 0 && (
-            <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.25rem' }}>
+            <div className="modal-similar-section" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.25rem' }}>
               <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>Similar Items</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {similarItems.map(s => (
