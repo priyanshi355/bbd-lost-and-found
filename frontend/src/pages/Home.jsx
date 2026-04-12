@@ -164,7 +164,12 @@ const Home = () => {
           </div>
           <div className="recent-grid">
             {recentItems.map(item => (
-              <div key={item.id} className="recent-card glass-panel">
+              <Link 
+                to={item.type === 'lost' ? '/lost' : '/found'} 
+                key={item.id} 
+                className="recent-card glass-panel"
+                style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
+              >
                 <div className="recent-card-header">
                   <span className={`recent-badge ${item.type}`}>{item.type === 'lost' ? '🔴 Lost' : '🟢 Found'}</span>
                   <span className="recent-date">{new Date(item.createdAt).toLocaleDateString()}</span>
@@ -175,7 +180,7 @@ const Home = () => {
                   <span>📍 {item.location || 'Campus'}</span>
                   <span>🏷️ {item.category}</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: '2rem' }}>
