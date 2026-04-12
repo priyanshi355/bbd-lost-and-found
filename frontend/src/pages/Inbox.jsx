@@ -34,6 +34,11 @@ const Inbox = () => {
     try {
       const data = await messageApi.getConversations();
       setConversations(data);
+      
+      // Fetch all missing profiles for the sidebar
+      const uniqueOtherIds = [...new Set(data.map(c => c.participants.find(p => p !== user.id)).filter(Boolean))];
+      uniqueOtherIds.forEach(id => fetchOtherProfile(id));
+
       if (data.length > 0 && !activeConv) {
         openConversation(data[0]);
       }
@@ -43,7 +48,7 @@ const Inbox = () => {
   };
 
   const getOtherUserId = (conv) => {
-    return conv.participants.find(p => p !== user.id);
+    return conv.participants?.find(p => p !== user.id);
   };
 
   // Fetch profile of other user in a conversation
@@ -55,13 +60,15 @@ const Inbox = () => {
         const data = await res.json();
         setOtherUserProfiles(prev => ({ ...prev, [userId]: data.user }));
       }
-    } catch {}
+    } catch (err) {
+      console.warn('Profile load failed for', userId);
+    }
   };
 
   const openConversation = async (conv) => {
     setActiveConv(conv);
     setShowContactSheet(false);
-    const otherId = conv.participants?.find(p => p !== user.id);
+    const otherId = getOtherUserId(conv);
     if (otherId) fetchOtherProfile(otherId);
     try {
       const msgs = await messageApi.getMessages(conv.id);
@@ -163,13 +170,17 @@ const Inbox = () => {
                     onClick={() => openConversation(conv)}
                   >
                     {/* Avatar with real pic if available */}
-                    <div className="inbox-conv-avatar" style={{ overflow: 'hidden', padding: 0 }}>
+                    <div 
+                      className="inbox-conv-avatar" 
+                      style={{ overflow: 'hidden', padding: 0, cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); if (otherId) navigate(`/user/${otherId}`); }}
+                    >
                       {otherProfile?.profilePic
                         ? <img src={otherProfile.profilePic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                         : <span>{conv.itemTitle?.[0]?.toUpperCase() || '?'}</span>
                       }
                     </div>
-                    <div className="inbox-conv-info">
+                    <div className="inbox-conv-info" onClick={() => openConversation(conv)}>
                       <div className="inbox-conv-title">{otherProfile?.name || conv.itemTitle || 'Item'}</div>
                       <div className="inbox-conv-preview" style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
                         re: {conv.itemTitle}
@@ -236,9 +247,9 @@ const Inbox = () => {
                         {!isMe && (
                           <div
                             className="inbox-msg-avatar"
-                            onClick={() => activeOtherUserId && navigate(`/user/${activeOtherUserId}`)}
+                            onClick={() => setShowContactSheet(true)}
                             style={{ cursor: 'pointer' }}
-                            title="View profile"
+                            title="See DP info"
                           >
                             {msg.senderPic
                               ? <img src={msg.senderPic} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
