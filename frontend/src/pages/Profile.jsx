@@ -67,7 +67,7 @@ const Profile = () => {
             )}
             <div className="profile-avatar-overlay">📷<br/><span>Change Photo</span></div>
           </div>
-          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} style={{ display: 'none' }} />
+          <input type="file" accept="image/*" capture="user" ref={fileInputRef} onChange={handleImageChange} style={{ display: 'none' }} />
           <h3 style={{ marginTop: '1rem', marginBottom: '0.25rem' }}>{user?.name}</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{user?.email}</p>
 

@@ -4,7 +4,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dns = require('dns');
 
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+// Only use external DNS in local development (BBD Campus Wifi workaround)
+// Render's production environment requires its own internal VPC DNS to connect to MongoDB
+if (process.env.NODE_ENV !== 'production') {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+}
 
 const app = express();
 

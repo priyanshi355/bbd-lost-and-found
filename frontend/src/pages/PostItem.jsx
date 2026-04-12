@@ -165,6 +165,7 @@ const PostItem = () => {
               type="file"
               accept="image/*"
               multiple
+              capture="environment"
               onChange={handleImageChange}
               className="form-control"
               ref={fileInputRef}
