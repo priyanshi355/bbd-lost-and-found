@@ -27,6 +27,20 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
     setSessionUnlocked(false);
   }, [item]);
 
+  // Lock background scroll when modal is open
+  useEffect(() => {
+    if (item) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [item]);
+
   // Gather all images (gallery + legacy single image)
   const allImages = item?.images?.length > 0 ? item.images : (item?.imageUrl ? [item.imageUrl] : []);
   const itemId = item?.id || item?._id;
