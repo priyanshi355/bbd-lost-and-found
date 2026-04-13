@@ -236,8 +236,9 @@ const Inbox = () => {
           ) : (
             <>
               {/* WhatsApp-style Thread Header — clickable */}
+              <div className="inbox-thread-header" style={{ justifyContent: 'space-between' }}>
                 <div 
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
                   onClick={() => {
                     if (activeOtherUserId) {
                       setSheetUserId(activeOtherUserId.trim());
