@@ -165,11 +165,11 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           <h2 style={{ marginBottom: '0.5rem', fontSize: '1.4rem' }}>{item.title}</h2>
 
           {/* Meta row */}
-          <div className="modal-meta-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            <span>📍 {item.location}</span>
-            <span>🏷️ {item.category}</span>
-            <span>📅 {new Date(item.createdAt || item.date).toLocaleDateString()}</span>
-            {item.resolved && <span style={{ color: 'var(--secondary-color)' }}>✅ Resolved</span>}
+          <div className="modal-meta-row" style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1.25rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span>Location: {item.location}</span>
+            <span>Category: {item.category}</span>
+            <span>Date: {new Date(item.createdAt || item.date).toLocaleDateString()}</span>
+            {item.resolved && <span style={{ color: 'var(--secondary-color)', fontWeight: 600 }}>Resolved</span>}
           </div>
 
           {/* --- MOVED ACTIONS UP TO PREVENT SCROLLING ON MOBILE --- */}
@@ -204,10 +204,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
                   {whatsAppDM ? (
                     <button 
                       className="btn btn-primary pulse-animation" 
-                      style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} 
+                      style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', fontWeight: 600 }} 
                       onClick={messagePosterOnWhatsApp}
                     >
-                      <span style={{ fontSize: '1.2rem' }}>📲</span> Chat on WhatsApp
+                      Chat on WhatsApp
                     </button>
                   ) : (
                     <div style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -231,9 +231,9 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
           {/* Share Row Compact */}
           <div className="modal-share-row" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>📲 Share</button>
-            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>🔗 Link</button>
-            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}>📷 QR</button>
+            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}>Share</button>
+            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}>Copy Link</button>
+            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}>QR Code</button>
           </div>
 
           {/* Image Gallery */}
@@ -285,14 +285,14 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           {/* Map */}
           {item.lat && item.lng && (
             <div style={{ marginBottom: '1.25rem' }}>
-              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>📍 Location on Campus Map</h4>
+              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Location on Campus Map</h4>
               <CampusMap lat={item.lat} lng={item.lng} readOnly={true} height="180px" />
             </div>
           )}
 
           {user && user.id !== item.authorId && (
             <button onClick={() => setShowReportModal(true)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer', width: '100%', textDecoration: 'underline', marginTop: '1rem' }}>
-              🚩 Report this listing
+              Report this listing
             </button>
           )}
 
@@ -330,7 +330,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
       <div id="qr-modal" onClick={() => document.getElementById('qr-modal').style.display = 'none'}
         style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 2000, alignItems: 'center', justifyContent: 'center' }}>
         <div onClick={e => e.stopPropagation()} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '2rem', textAlign: 'center', maxWidth: '280px' }}>
-          <h3 style={{ marginBottom: '1rem' }}>📷 Scan to View</h3>
+          <h3 style={{ marginBottom: '1rem' }}>Scan to View</h3>
           <img src={qrUrl} alt="QR Code" style={{ borderRadius: '8px', width: '200px', height: '200px' }} />
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.75rem' }}>Scan with phone camera to open this listing</p>
           <button className="btn btn-secondary" style={{ marginTop: '1rem', width: '100%' }} onClick={() => document.getElementById('qr-modal').style.display = 'none'}>Close</button>
