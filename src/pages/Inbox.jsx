@@ -12,6 +12,7 @@ const Inbox = () => {
   const [conversations, setConversations] = useState([]);
   const [activeConv, setActiveConv] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [mobileView, setMobileView] = useState('list'); // 'list' or 'chat'
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -21,6 +22,7 @@ const Inbox = () => {
   const [showContactSheet, setShowContactSheet] = useState(false);
   const [sheetUserId, setSheetUserId] = useState(null);
   const messagesEndRef = useRef(null);
+  const pollIntervalRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -56,11 +58,10 @@ const Inbox = () => {
       const data = await messageApi.getConversations();
       setConversations(data);
       
-      // Fetch all missing profiles for the sidebar
       const uniqueOtherIds = [...new Set(data.map(c => c.participants.find(p => p !== user.id)).filter(Boolean))];
       uniqueOtherIds.forEach(id => fetchOtherProfile(id));
 
-      if (data.length > 0 && !activeConv) {
+      if (data.length > 0 && !activeConv && window.innerWidth > 768) {
         openConversation(data[0]);
       }
     } catch (err) {
@@ -73,7 +74,6 @@ const Inbox = () => {
     return conv.participants.find(p => p && p.trim() !== user.id.trim());
   };
 
-  // Fetch profile of other user in a conversation
   const fetchOtherProfile = async (userId) => {
     if (!userId || otherUserProfiles[userId]) return;
     try {
@@ -83,13 +83,16 @@ const Inbox = () => {
         setOtherUserProfiles(prev => ({ ...prev, [userId]: data.user }));
       }
     } catch (err) {
-      console.warn('Profile load failed for', userId);
+      console.warn('Profile load failed');
     }
   };
 
   const openConversation = async (conv) => {
     setActiveConv(conv);
     setShowContactSheet(false);
+    if (window.innerWidth <= 768) {
+      setMobileView('chat');
+    }
     const otherId = getOtherUserId(conv);
     if (otherId) fetchOtherProfile(otherId.trim());
     try {
@@ -104,6 +107,28 @@ const Inbox = () => {
       toast.error('Failed to load messages');
     }
   };
+
+  // Real-time message polling
+  useEffect(() => {
+    if (!activeConv) return;
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const msgs = await messageApi.getMessages(activeConv.id);
+        setMessages(prev => {
+          if (prev.length !== msgs.length) return msgs;
+          return prev;
+        });
+      } catch (err) {
+        console.warn('Polling failed');
+      }
+    }, 5000);
+
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [activeConv]);
 
   const handleSendReply = async (e) => {
     e.preventDefault();
@@ -158,159 +183,91 @@ const Inbox = () => {
   };
 
   return (
-    <div className="page-container" style={{ padding: '0' }}>
-      <div className="inbox-layout">
-
-        {/* Sidebar — Conversations */}
+    <div className="page-container" style={{ padding: 0, height: 'calc(100vh - 70px)', background: 'var(--bg-dark)' }}>
+      <div className={`inbox-layout ${mobileView === 'chat' ? 'show-chat' : 'show-list'}`}>
         <div className="inbox-sidebar">
           <div className="inbox-sidebar-header">
-            <h2>💬 Inbox</h2>
-            <span className="inbox-count">{conversations.length} conversations</span>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ color: 'var(--primary-color)' }}>💬</span> Inbox
+            </h2>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              {conversations.length} conversations
+            </div>
           </div>
-
-          {loading ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
-          ) : conversations.length === 0 ? (
-            <div className="inbox-empty">
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-              <p>No messages yet.</p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                When someone messages you about your listing, it'll appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="inbox-list">
-              {conversations.map(conv => {
-                const unread = getUnread(conv);
-                const isActive = activeConv?.id === conv.id;
-                const otherId = conv.participants?.find(p => p !== user.id);
-                const otherProfile = otherId ? otherUserProfiles[otherId] : null;
-                return (
-                  <div
-                    key={conv.id}
-                    className={`inbox-conv-item ${isActive ? 'active' : ''}`}
-                    onClick={() => openConversation(conv)}
-                  >
-                    {/* Avatar with real pic if available */}
-                    <div 
-                      className="inbox-conv-avatar" 
-                      style={{ overflow: 'hidden', padding: 0, cursor: 'pointer' }}
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        if (otherId) {
-                          setSheetUserId(otherId.trim());
-                          setShowContactSheet(true);
-                        }
-                      }}
-                    >
-                      {otherProfile?.profilePic
-                        ? <img src={otherProfile.profilePic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                        : <span>{conv.itemTitle?.[0]?.toUpperCase() || '?'}</span>
-                      }
+          <div className="inbox-conv-list" style={{ flex: 1, overflowY: 'auto' }}>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading...</div>
+            ) : conversations.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No conversations yet.</div>
+            ) : (
+              conversations.map(conv => (
+                <div
+                  key={conv.id}
+                  className={`inbox-conv-item ${activeConv?.id === conv.id ? 'active' : ''}`}
+                  onClick={() => openConversation(conv)}
+                >
+                  {renderAvatar(otherUserProfiles[getOtherUserId(conv)], 48)}
+                  <div className="inbox-conv-info">
+                    <div className="inbox-conv-top">
+                      <span className="inbox-conv-name">
+                        {otherUserProfiles[getOtherUserId(conv)]?.name || 'User'}
+                      </span>
+                      {getUnread(conv) > 0 && <span className="inbox-unread-badge">{getUnread(conv)}</span>}
                     </div>
-                    <div className="inbox-conv-info" onClick={() => openConversation(conv)}>
-                      <div className="inbox-conv-title">{otherProfile?.name || conv.itemTitle || 'Item'}</div>
-                      <div className="inbox-conv-preview" style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                        re: {conv.itemTitle}
-                      </div>
-                      <div className="inbox-conv-preview">{conv.lastMessage}</div>
+                    <div className="inbox-conv-preview">
+                      re: {conv.itemTitle}
                     </div>
-                    {unread > 0 && (
-                      <span className="inbox-unread-badge">{unread}</span>
-                    )}
+                    <div className="inbox-conv-preview" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                      {conv.lastMessage || 'Start writing...'}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Main — Message Thread */}
         <div className="inbox-thread">
           {!activeConv ? (
             <div className="inbox-thread-empty">
               <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>💬</div>
               <h3>Select a conversation</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Choose a conversation from the left to start chatting.</p>
+              <p style={{ color: 'var(--text-muted)' }}>Choose a chat to start messaging.</p>
             </div>
           ) : (
             <>
-              {/* WhatsApp-style Thread Header — clickable */}
-              <div className="inbox-thread-header" style={{ justifyContent: 'space-between' }}>
-                <div 
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
-                  onClick={() => {
-                    if (activeOtherUserId) {
-                      setSheetUserId(activeOtherUserId.trim());
-                      setShowContactSheet(true);
-                    }
-                  }}
-                >
-                  {renderAvatar(activeOtherProfile, 40)}
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1rem' }}>
-                      {activeOtherProfile?.name || 'Loading...'}
-                    </h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: 0 }}>
-                      {activeOtherProfile?.course ? `${activeOtherProfile.course}${activeOtherProfile.year ? ' · ' + activeOtherProfile.year + ' Year' : ''}` : `re: ${activeConv.itemTitle}`}
-                    </p>
+              <div className="inbox-thread-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <button className="inbox-back-btn" onClick={(e) => { e.stopPropagation(); setMobileView('list'); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', cursor: 'pointer', display: 'none' }}>←</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => { if (activeOtherUserId) { setSheetUserId(activeOtherUserId.trim()); setShowContactSheet(true); } }}>
+                    {renderAvatar(activeOtherProfile, 42)}
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.05rem' }}>{activeOtherProfile?.name || 'User'}</h3>
+                      <p style={{ color: '#10b981', fontSize: '0.75rem', margin: 0 }}>online</p>
+                    </div>
                   </div>
                 </div>
                 <button
                   style={{ background: 'none', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-muted)', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem' }}
                   onClick={(e) => { e.stopPropagation(); navigate(`/user/${activeOtherUserId}`); }}
                 >
-                  View Profile
+                  Profile
                 </button>
               </div>
-
-              {/* Messages */}
               <div className="inbox-messages">
                 {messages.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: '3rem' }}>
-                    No messages yet. Say hello!
-                  </div>
+                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem' }}>No messages yet.</div>
                 ) : (
                   messages.map(msg => {
                     const isMe = msg.sender === user.id;
                     return (
                       <div key={msg.id} className={`inbox-message-row ${isMe ? 'me' : 'them'}`}>
-                        {!isMe && (
-                          <div
-                            className="inbox-msg-avatar"
-                            onClick={() => {
-                              if (activeOtherUserId) {
-                                setSheetUserId(activeOtherUserId.trim());
-                                setShowContactSheet(true);
-                              }
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title="See DP info"
-                          >
-                            {msg.senderPic
-                              ? <img src={msg.senderPic} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                              : msg.senderName?.[0]?.toUpperCase() || '?'
-                            }
-                          </div>
-                        )}
                         <div className="inbox-bubble-wrap">
-                          {!isMe && <div className="inbox-msg-name">{msg.senderName}</div>}
                           <div className={`inbox-bubble ${isMe ? 'bubble-me' : 'bubble-them'}`}>
-                            {msg.imageUrl && (
-                              <img
-                                src={msg.imageUrl}
-                                alt="Sent image"
-                                style={{ maxWidth: '220px', maxHeight: '220px', borderRadius: '8px', display: 'block', marginBottom: msg.text ? '0.4rem' : 0, cursor: 'pointer' }}
-                                onClick={() => window.open(msg.imageUrl, '_blank')}
-                              />
-                            )}
-                            {msg.text && <span>{msg.text}</span>}
+                            {msg.imageUrl && <img src={msg.imageUrl} alt="" style={{ maxWidth: '100%', borderRadius: '12px', marginBottom: '0.5rem', display: 'block' }} />}
+                            {msg.text}
                           </div>
-                          <div className="inbox-msg-time">
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            {' · '}
-                            {new Date(msg.createdAt).toLocaleDateString()}
-                          </div>
+                          <div className="inbox-msg-time">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
                       </div>
                     );
@@ -318,132 +275,44 @@ const Inbox = () => {
                 )}
                 <div ref={messagesEndRef} />
               </div>
-
-              {/* Reply Box */}
-              <form onSubmit={handleSendReply} className="inbox-reply-box" style={{ flexDirection: 'column', gap: '0.5rem' }}>
-                {/* Image Preview */}
-                {pendingImage && (
-                  <div style={{ position: 'relative', alignSelf: 'flex-start' }}>
-                    <img src={pendingImage} alt="preview" style={{ maxHeight: '80px', maxWidth: '120px', borderRadius: '8px', border: '2px solid var(--primary-color)' }} />
-                    <button
-                      type="button"
-                      onClick={() => setPendingImage(null)}
-                      style={{ position: 'absolute', top: -6, right: -6, background: 'var(--accent-color)', border: 'none', color: 'white', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >×</button>
+              <div className="inbox-reply-box">
+                <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImagePick} />
+                <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => fileInputRef.current.click()}>📷</button>
+                <form onSubmit={handleSendReply} style={{ flex: 1, display: 'flex', gap: '0.75rem' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    {pendingImage && <div style={{ position: 'absolute', top: '-40px', left: 0, background: 'var(--primary-color)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem' }}>Image attached <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'white' }}>&times;</button></div>}
+                    <input type="text" className="inbox-input" placeholder="Type a message..." value={replyText} onChange={(e) => setReplyText(e.target.value)} disabled={sending} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white' }} />
                   </div>
-                )}
-                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                  {/* Image picker button */}
-                  <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleImagePick} />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="btn btn-secondary"
-                    style={{ padding: '0.75rem', fontSize: '1.2rem', flexShrink: 0 }}
-                    title="Send image"
-                  >📷</button>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder={pendingImage ? 'Add a caption... (optional)' : 'Type a message...'}
-                    value={replyText}
-                    onChange={e => setReplyText(e.target.value)}
-                    style={{ flex: 1, marginBottom: 0 }}
-                  />
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={sending || (!replyText.trim() && !pendingImage)}
-                    style={{ padding: '0.75rem 1rem', flexShrink: 0 }}
-                  >
-                    {sending ? '...' : '➤'}
-                  </button>
-                </div>
-              </form>
+                  <button type="submit" disabled={sending || (!replyText.trim() && !pendingImage)} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '12px', cursor: 'pointer' }}>{sending ? '...' : '➤'}</button>
+                </form>
+              </div>
             </>
           )}
         </div>
       </div>
 
-      {/* WhatsApp-style Contact Info Bottom Sheet */}
       {showContactSheet && sheetUserId && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowContactSheet(false)}
-        >
-          <div
-            className="modal-content"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '360px', textAlign: 'center' }}
-          >
+        <div className="modal-overlay" onClick={() => setShowContactSheet(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '360px', textAlign: 'center' }}>
             <button className="modal-close" onClick={() => setShowContactSheet(false)}>&times;</button>
-
-            {/* Large Avatar */}
             {(() => {
               const profile = otherUserProfiles[sheetUserId];
               return (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', marginTop: '0.5rem' }}>
                     {profile?.profilePic ? (
-                      <img
-                        src={profile.profilePic}
-                        alt=""
-                        style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary-color)' }}
-                      />
+                      <img src={profile.profilePic} alt="" style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary-color)' }} />
                     ) : (
-                      <div style={{
-                        width: '90px', height: '90px', borderRadius: '50%',
-                        background: 'linear-gradient(135deg, var(--primary-color), #a78bfa)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '2.4rem', fontWeight: 700, color: 'white',
-                        border: '3px solid rgba(167,139,250,0.4)'
-                      }}>
+                      <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-color), #a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.4rem', color: 'white' }}>
                         {(profile?.name || '?')[0].toUpperCase()}
                       </div>
                     )}
                   </div>
-
-                  <h2 style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>{profile?.name || 'Loading Name...'}</h2>
-
-                  {profile ? (
-                    <>
-                      {profile.course && (
-                        <p style={{ color: 'var(--primary-color)', fontWeight: 500, marginBottom: '0.5rem' }}>
-                          {profile.course}{profile.year ? ` · ${profile.year} Year` : ''}
-                        </p>
-                      )}
-                      {profile.rollNo && (
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                          🎓 {profile.rollNo}
-                        </p>
-                      )}
-                      {profile.bio && (
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', fontStyle: 'italic' }}>
-                          "{profile.bio}"
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                       Loading contact information...
-                     </p>
-                  )}
-
+                  <h2 style={{ fontSize: '1.4rem' }}>{profile?.name || 'User'}</h2>
+                  {profile?.course && <p style={{ color: 'var(--primary-color)' }}>{profile.course}</p>}
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ flex: 1 }}
-                      onClick={() => setShowContactSheet(false)}
-                    >
-                      Close
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      style={{ flex: 1 }}
-                      onClick={() => { setShowContactSheet(false); navigate(`/user/${sheetUserId}`); }}
-                    >
-                      Full Profile
-                    </button>
+                    <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowContactSheet(false)}>Close</button>
+                    <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => { setShowContactSheet(false); navigate(`/user/${sheetUserId}`); }}>Visit</button>
                   </div>
                 </>
               );
