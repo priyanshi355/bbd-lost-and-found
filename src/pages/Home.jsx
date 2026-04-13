@@ -24,9 +24,9 @@ const Home = () => {
     <div className="home-page">
       {/* ===== HERO SECTION ===== */}
       <section className="hero-section">
-        <div className="hero-glow hero-glow-1"></div>
-        <div className="hero-glow hero-glow-2"></div>
-        <div className="hero-content">
+        <div className="hero-glow hero-glow-1" style={{ width: '600px', height: '600px', filter: 'blur(150px)', opacity: 0.6 }}></div>
+        <div className="hero-glow hero-glow-2" style={{ width: '500px', height: '500px', filter: 'blur(130px)', opacity: 0.5 }}></div>
+        <div className="hero-content float-animation">
           <span className="hero-badge">🏫 BBD University, Lucknow</span>
           <h1 className="hero-title">
             Lost Something?<br />
@@ -96,17 +96,17 @@ const Home = () => {
           <p>Built for the BBD community with care</p>
         </div>
         <div className="features-grid">
-          <div className="feature-card glass-panel">
+          <div className="feature-card glass-panel float-animation" style={{ animationDelay: '0.2s' }}>
             <div className="feature-icon">⚡</div>
             <h3>Real-Time Listings</h3>
             <p>Items appear instantly after posting. No delays, no waiting — find what you need now.</p>
           </div>
-          <div className="feature-card glass-panel">
+          <div className="feature-card glass-panel float-animation" style={{ animationDelay: '0.4s' }}>
             <div className="feature-icon">🔒</div>
             <h3>Secure Accounts</h3>
             <p>Your identity and contact information are protected. Only share details when you choose to.</p>
           </div>
-          <div className="feature-card glass-panel">
+          <div className="feature-card glass-panel float-animation" style={{ animationDelay: '0.6s' }}>
             <div className="feature-icon">🏷️</div>
             <h3>Smart Categories</h3>
             <p>Filter by Electronics, Documents, Accessories, and more for faster matching.</p>

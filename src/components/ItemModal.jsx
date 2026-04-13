@@ -203,7 +203,7 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {whatsAppDM ? (
                     <button 
-                      className="btn btn-primary" 
+                      className="btn btn-primary pulse-animation" 
                       style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} 
                       onClick={messagePosterOnWhatsApp}
                     >
