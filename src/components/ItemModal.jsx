@@ -166,10 +166,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
           {/* Meta row */}
           <div className="modal-meta-row" style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1.25rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            <span>Location: {item.location}</span>
-            <span>Category: {item.category}</span>
-            <span>Date: {new Date(item.createdAt || item.date).toLocaleDateString()}</span>
-            {item.resolved && <span style={{ color: 'var(--secondary-color)', fontWeight: 600 }}>Resolved</span>}
+            <span>📍 {item.location}</span>
+            <span>🏷️ {item.category}</span>
+            <span>📅 {new Date(item.createdAt || item.date).toLocaleDateString()}</span>
+            {item.resolved && <span style={{ color: 'var(--secondary-color)', fontWeight: 600 }}>✅ Resolved</span>}
           </div>
 
           {/* --- MOVED ACTIONS UP TO PREVENT SCROLLING ON MOBILE --- */}
@@ -277,22 +277,22 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
           {/* Contact Details strictly if available and they scroll down to read more context */}
           {!isLocked && item.contact && (
             <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.25rem', fontSize: '0.85rem' }}>Contact Details Provided</h4>
-              <p style={{ fontWeight: '500' }}>{item.contact}</p>
+              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.25rem', fontSize: '0.85rem' }}>📞 Contact Details Provided</h4>
+              <p style={{ fontWeight: '500', color: '#ffffff' }}>{item.contact}</p>
             </div>
           )}
 
           {/* Map */}
           {item.lat && item.lng && (
             <div style={{ marginBottom: '1.25rem' }}>
-              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Location on Campus Map</h4>
+              <h4 style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>📍 Location on Campus Map</h4>
               <CampusMap lat={item.lat} lng={item.lng} readOnly={true} height="180px" />
             </div>
           )}
 
           {user && user.id !== item.authorId && (
             <button onClick={() => setShowReportModal(true)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer', width: '100%', textDecoration: 'underline', marginTop: '1rem' }}>
-              Report this listing
+              🚩 Report this listing
             </button>
           )}
 
