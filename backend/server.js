@@ -5,9 +5,13 @@ const cors = require('cors');
 const dns = require('dns');
 
 // Only use external DNS in local development (BBD Campus Wifi workaround)
-// Render's production environment requires its own internal VPC DNS to connect to MongoDB
-if (process.env.NODE_ENV !== 'production') {
-  dns.setServers(['8.8.8.8', '8.8.4.4']);
+// Render's production environment requires its own internal VPC DNS.
+if (process.env.NODE_ENV === 'development' && !process.env.RENDER) {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+  } catch (e) {
+    console.warn('DNS override failed:', e.message);
+  }
 }
 
 const app = express();
