@@ -15,7 +15,7 @@ const LoginRegister = () => {
 
   // Forms
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const [regForm, setRegForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [regForm, setRegForm] = useState({ name: '', email: '', phone: '+91 ', password: '', confirm: '' });
   const [otp, setOtp] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetForm, setResetForm] = useState({ otp: '', newPassword: '', confirm: '' });
@@ -41,9 +41,10 @@ const LoginRegister = () => {
     e.preventDefault();
     if (regForm.password !== regForm.confirm) { toast.error('Passwords do not match'); return; }
     if (regForm.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (regForm.phone.length < 10) { toast.error('Please enter a valid mobile number'); return; }
     setLoading(true);
     try {
-      await register(regForm.name, regForm.email, regForm.password);
+      await register(regForm.name, regForm.email, regForm.password, regForm.phone);
       setPendingEmail(regForm.email);
       setTab('verify');
       toast.success('Account created! Check your email for the OTP.');
@@ -149,6 +150,11 @@ const LoginRegister = () => {
                 <label className="form-label">Full Name</label>
                 <input type="text" className="form-control" placeholder="Your Name" value={regForm.name}
                   onChange={e => setRegForm({ ...regForm, name: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mobile Number (for WhatsApp)</label>
+                <input type="text" className="form-control" placeholder="+91 0000000000" value={regForm.phone}
+                  onChange={e => setRegForm({ ...regForm, phone: e.target.value })} required />
               </div>
               <div className="form-group">
                 <label className="form-label">Email Address</label>

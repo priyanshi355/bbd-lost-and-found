@@ -8,9 +8,9 @@ const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: 
 // POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password)
-      return res.status(400).json({ error: 'Name, email and password are required' });
+    const { name, email, password, phone } = req.body;
+    if (!name || !email || !password || !phone)
+      return res.status(400).json({ error: 'Name, email, password and mobile number are required' });
     if (password.length < 6)
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
@@ -21,6 +21,7 @@ const register = async (req, res) => {
       // Re-send OTP if not verified
       const otp = generateOtp();
       existing.name = name;
+      existing.phone = phone;
       existing.passwordHash = await bcrypt.hash(password, 12);
       existing.emailOtp = otp;
       existing.emailOtpExpiry = new Date(Date.now() + 10 * 60 * 1000);
@@ -34,6 +35,7 @@ const register = async (req, res) => {
     const user = await User.create({
       name,
       email: email.toLowerCase(),
+      phone,
       passwordHash,
       emailOtp: otp,
       emailOtpExpiry: new Date(Date.now() + 10 * 60 * 1000),

@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { messageApi } from '../services/message.api';
+
 
 const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
@@ -22,19 +21,7 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Poll unread count every 30 seconds when user is logged in
-  useEffect(() => {
-    if (!user) { setUnreadCount(0); return; }
-    const fetchUnread = async () => {
-      try {
-        const data = await messageApi.getUnreadCount();
-        setUnreadCount(data.count || 0);
-      } catch { /* silent fail */ }
-    };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+
 
   const initials = user?.name
     ? user.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
@@ -61,13 +48,7 @@ const Navbar = () => {
 
         {user ? (
           <div className="nav-user-actions">
-            {/* Inbox bell with unread badge */}
-            <Link to="/inbox" className="nav-inbox-btn" title="Inbox" onClick={() => setMobileMenuOpen(false)}>
-              💬
-              {unreadCount > 0 && (
-                <span className="nav-unread-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
-              )}
-            </Link>
+
 
             <div className="nav-avatar-wrapper" ref={dropdownRef}>
               <button className="nav-avatar-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -93,9 +74,6 @@ const Navbar = () => {
                   </Link>
                   <Link to="/my-items" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
                     📋 My Postings
-                  </Link>
-                  <Link to="/inbox" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                    💬 Inbox {unreadCount > 0 && <span className="nav-unread-badge" style={{ position: 'static', marginLeft: 'auto' }}>{unreadCount}</span>}
                   </Link>
                   <div className="nav-dropdown-divider"></div>
                   <button className="nav-dropdown-item nav-dropdown-logout" onClick={() => { logout(); setDropdownOpen(false); setMobileMenuOpen(false); }}>

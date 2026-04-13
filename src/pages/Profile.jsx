@@ -103,8 +103,8 @@ const Profile = () => {
                 <input type="text" name="name" value={form.name} onChange={handleChange} className="form-control" required />
               </div>
               <div className="form-group">
-                <label className="form-label">Phone Number</label>
-                <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="form-control" placeholder="+91 9876543210" />
+                <label className="form-label">Phone Number (WhatsApp) *</label>
+                <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="form-control" placeholder="+91 9876543210" required />
               </div>
               <div className="form-group">
                 <label className="form-label">Course / Branch</label>

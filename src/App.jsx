@@ -9,7 +9,7 @@ import PostItem from './pages/PostItem';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import Profile from './pages/Profile';
-import Inbox from './pages/Inbox';
+
 import MyItems from './pages/MyItems';
 import PublicProfile from './pages/PublicProfile';
 import ToastContainer from './components/ToastContainer';
@@ -34,7 +34,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/my-items" element={<ProtectedRoute><MyItems /></ProtectedRoute>} />
-            <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
+
             <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
             <Route path="/user/:userId" element={<PublicProfile />} />
           </Routes>

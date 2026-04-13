@@ -102,14 +102,17 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
   };
 
   let whatsAppDM = null;
-  if (item?.contact) {
-    const digitsOnly = item.contact.replace(/\D/g, '');
+  // Prioritize registered user phone, fallback to item.contact
+  const contactSource = authorProfile?.phone || item?.contact;
+  if (contactSource) {
+    const digitsOnly = contactSource.replace(/\D/g, '');
     let finalWaNum = digitsOnly;
+    // Handle Indian numbers (10 digits -> +91)
     if (digitsOnly.length === 10) finalWaNum = '91' + digitsOnly;
     if (finalWaNum.length >= 10 && finalWaNum.length <= 15) {
       whatsAppDM = {
         number: finalWaNum,
-        text: `Hi! I'm contacting you regarding your listing "${item.title}" on BBD Lost & Found.`
+        text: `Hi! I'm contacting you through BBD Lost & Found regarding your listing "${item.title}". Is it still available?`
       };
     }
   }
@@ -198,17 +201,18 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
             user && user.id !== item.authorId && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn btn-primary" style={{ flex: 1, padding: '0.75rem' }} onClick={() => setShowMessageModal(true)}>
-                    💬 Message App
-                  </button>
-                  {whatsAppDM && (
+                  {whatsAppDM ? (
                     <button 
-                      className="btn btn-secondary" 
-                      style={{ flex: 1, padding: '0.75rem', background: 'rgba(37,211,102,0.15)', borderColor: '#25d366', color: '#25d366' }} 
+                      className="btn btn-primary" 
+                      style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} 
                       onClick={messagePosterOnWhatsApp}
                     >
-                      📲 WhatsApp DM
+                      <span style={{ fontSize: '1.2rem' }}>📲</span> Chat on WhatsApp
                     </button>
+                  ) : (
+                    <div style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                      No contact number provided by poster
+                    </div>
                   )}
                 </div>
               </div>

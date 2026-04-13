@@ -35,10 +35,15 @@ html {
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  background: radial-gradient(circle at top left, rgba(79, 70, 229, 0.15), transparent 40%),
-              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.1), transparent 40%);
+  background: radial-gradient(circle at top left, rgba(79, 70, 229, 0.25), transparent 45%),
+              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.2), transparent 45%),
+              var(--bg-dark); /* Ensure solid dark base under gradients to block white gaps */
   overflow-x: hidden;
   max-width: 100%;
+}
+html {
+  background: var(--bg-dark); /* Block any white space on scroll */
+  overflow-x: hidden;
 }
 
 #root {
@@ -112,14 +117,16 @@ a {
 /* Navbar */
 .navbar {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 1rem 5%;
   width: 100%;
   box-sizing: border-box;
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--glass-border);
 }
 
