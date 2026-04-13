@@ -118,12 +118,16 @@ const Inbox = () => {
         const msgs = await messageApi.getMessages(activeConv.id);
         setMessages(prev => {
           if (prev.length !== msgs.length) return msgs;
+          // Check if last message ID or content changed to catch edits/updates
+          if (prev.length > 0 && msgs.length > 0) {
+            if (prev[prev.length - 1].id !== msgs[msgs.length - 1].id) return msgs;
+          }
           return prev;
         });
       } catch (err) {
         console.warn('Polling failed');
       }
-    }, 5000);
+    }, 1000);
 
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
