@@ -204,10 +204,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
                   {whatsAppDM ? (
                     <button 
                       className="btn btn-primary pulse-animation" 
-                      style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', fontWeight: 600 }} 
+                      style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem' }} 
                       onClick={messagePosterOnWhatsApp}
                     >
-                      Chat on WhatsApp
+                      <span style={{ fontSize: '1.2rem' }}>📲</span> Chat on WhatsApp
                     </button>
                   ) : (
                     <div style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -229,11 +229,11 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
             </div>
           )}
 
-          {/* Share Row Compact */}
+          {/* Share Row Compact - Varied Styles */}
           <div className="modal-share-row" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}>Share</button>
-            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}>Copy Link</button>
-            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}>QR Code</button>
+            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(37, 211, 102, 0.1)', borderColor: 'rgba(37, 211, 102, 0.2)' }}>📲 Share</button>
+            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(99, 102, 241, 0.1)', borderColor: 'rgba(99, 102, 241, 0.2)' }}>🔗 Share Link</button>
+            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(255, 255, 255, 0.05)' }}>📱 QR Code</button>
           </div>
 
           {/* Image Gallery */}
