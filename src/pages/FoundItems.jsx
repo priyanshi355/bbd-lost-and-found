@@ -110,7 +110,7 @@ const FoundItems = () => {
                    RESOLVED
                  </span>
               )}
-              <h3 style={{ margin: '0 0 0.5rem 0', color: item.resolved ? 'var(--text-muted)' : 'var(--secondary-color)' }}>
+              <h3 style={{ margin: '0 0 0.5rem 0', color: item.resolved ? 'var(--text-muted)' : '#34d399' }}>
                  {item.title}
               </h3>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
@@ -124,7 +124,7 @@ const FoundItems = () => {
               <p style={{ flex: 1, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {item.description}
               </p>
-              {item.location && <p style={{ fontSize: '0.9rem' }}><strong>Found at:</strong> {item.location}</p>}
+              {item.location && <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Found at:</strong> <span style={{ color: '#ffffff' }}>{item.location}</span></p>}
             </div>
           ))
         )}

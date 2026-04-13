@@ -24,6 +24,7 @@
   position: relative;
   margin: 0;
   padding: 0;
+  color: var(--text-muted); /* Global default text color */
 }
 html {
   overflow-x: hidden;
@@ -58,6 +59,11 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 1rem;
+  color: #ffffff !important; /* DIRECT NUCLEAR FIX */
+}
+
+body {
+  color: #cbd5e1 !important; /* Ensure body text is bright slate */
 }
 
 a {
@@ -364,9 +370,12 @@ a {
 .skeleton-title { height: 1.5rem; width: 70%; margin-bottom: 1rem; }
 
 /* Item Card Utilities */
-.item-card { cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; }
-.item-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-.resolved-item { opacity: 0.5; filter: grayscale(0.8); }
+.item-card { cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; color: #cbd5e1 !important; }
+.item-card h3 { color: #ffffff !important; margin-bottom: 0.5rem; }
+.item-card p { color: #cbd5e1 !important; }
+.item-card strong { color: #ffffff !important; }
+.item-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.4); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.resolved-item { opacity: 0.6; filter: grayscale(0.5); }
 
 /* Search Bar Layout */
 .search-bar-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
@@ -511,8 +520,8 @@ a {
 }
 .feature-card:hover { transform: translateY(-6px); border-color: rgba(129, 140, 248, 0.4); }
 .feature-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
-.feature-card h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
-.feature-card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+.feature-card h3 { font-size: 1.15rem; margin-bottom: 0.5rem; color: #ffffff; }
+.feature-card p { color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; }
 
 /* Stats Section */
 .stats-section { background: linear-gradient(180deg, rgba(79, 70, 229, 0.05), transparent); border-radius: 20px; }
