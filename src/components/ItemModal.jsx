@@ -101,6 +101,28 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
     }
   };
 
+  const WhatsAppIcon = () => (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.445 0 .081 5.363.079 11.97a11.894 11.894 0 001.614 6.01L0 24l6.162-1.616a11.841 11.841 0 005.882 1.579h.005c6.604 0 11.967-5.365 11.97-11.97a11.815 11.815 0 00-3.486-8.452z" />
+    </svg>
+  );
+
+  const LinkIcon = () => (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+
+  const QRIcon = () => (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+    </svg>
+  );
+
   let whatsAppDM = null;
   // Prioritize registered user phone, fallback to item.contact
   const contactSource = authorProfile?.phone || item?.contact;
@@ -204,10 +226,10 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
                   {whatsAppDM ? (
                     <button 
                       className="btn btn-primary pulse-animation" 
-                      style={{ flex: 1, padding: '1rem', background: '#25d366', borderColor: '#25d366', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem' }} 
+                      style={{ flex: 1, padding: '1rem', background: '#128c7e', borderColor: '#128c7e', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', boxShadow: '0 4px 15px rgba(18, 140, 126, 0.3)' }} 
                       onClick={messagePosterOnWhatsApp}
                     >
-                      <span style={{ fontSize: '1.2rem' }}>📲</span> Chat on WhatsApp
+                      <WhatsAppIcon /> Chat on WhatsApp
                     </button>
                   ) : (
                     <div style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -231,9 +253,15 @@ const ItemModal = ({ item, onClose, onOpenItem }) => {
 
           {/* Share Row Compact - Varied Styles */}
           <div className="modal-share-row" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(37, 211, 102, 0.1)', borderColor: 'rgba(37, 211, 102, 0.2)' }}>📲 Share</button>
-            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(99, 102, 241, 0.1)', borderColor: 'rgba(99, 102, 241, 0.2)' }}>🔗 Share Link</button>
-            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(255, 255, 255, 0.05)' }}>📱 QR Code</button>
+            <button onClick={whatsAppShare} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem 0.25rem', fontSize: '0.8rem', background: 'rgba(18, 140, 126, 0.1)', borderColor: 'rgba(18, 140, 126, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              <WhatsAppIcon /> Share
+            </button>
+            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem 0.25rem', fontSize: '0.8rem', background: 'rgba(99, 102, 241, 0.1)', borderColor: 'rgba(99, 102, 241, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              <LinkIcon /> Share Link
+            </button>
+            <button onClick={() => document.getElementById('qr-modal').style.display = 'flex'} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem 0.25rem', fontSize: '0.8rem', background: 'rgba(255, 255, 255, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              <QRIcon /> QR Code
+            </button>
           </div>
 
           {/* Image Gallery */}
